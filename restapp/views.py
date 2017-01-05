@@ -13,12 +13,6 @@ from Crypto import Random
 from Crypto.Cipher import PKCS1_v1_5
 
 
-AllList=[]
-ApiHomeDict={}
-InputDict={}
-SuccessDict={}
-FailureDict={}
-JsonDict={}
 e = ReturnAllDict()
 AllList = e.returnDict()
 ApiHomeDict=AllList[0]
@@ -39,6 +33,10 @@ KEY_SIZE = 2048
 @api_view(['POST'])
 
 def get_initial_token(request):
+
+    print ApiHomeDict.get('GetInitialKey')[0].url
+    print InputDict.get('GetPreAuthenticationKey').get('jData')[0].description
+
     if request.method == 'POST':
         content=request.body
         url=base_url+'GetInitialKey'
