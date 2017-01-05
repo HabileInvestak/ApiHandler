@@ -7,10 +7,26 @@ import hashlib
 import urllib
 import urllib2
 import base64
-
+from rest_example.wsgi import ReturnAllDict
 from Crypto.PublicKey import RSA
 from Crypto import Random
 from Crypto.Cipher import PKCS1_v1_5
+
+
+AllList=[]
+ApiHomeDict={}
+InputDict={}
+SuccessDict={}
+FailureDict={}
+JsonDict={}
+e = ReturnAllDict()
+AllList = e.returnDict()
+ApiHomeDict=AllList[0]
+InputDict=AllList[1]
+SuccessDict=AllList[2]
+FailureDict=AllList[3]
+JsonDict=AllList[4]
+
 
 base_url='http://nestuat.tradesmartonline.in/NestHtml5Mobile/rest/'
 global_user_id='UTEST3'
