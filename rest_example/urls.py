@@ -8,4 +8,7 @@ urlpatterns = [
    url(r'^admin/', include(admin.site.urls)),
    url(r'^get_initial_token/', views.get_initial_token),
    url(r'^login/', views.get_login_2fa),
+   url(r'^valid_pwd/',views.get_valid_pwd),
+   url(r'^valid_ans/',views.get_valid_ans),
+
    ]

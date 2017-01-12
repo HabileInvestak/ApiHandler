@@ -81,9 +81,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'investak_api_handler',
         'USER': 'postgres',
-        'PASSWORD': 'root',
-        'HOST': '127.0.0.1',
-        'PORT': '3309',
+        'PASSWORD': 'password',
+        #'HOST': '127.0.0.1',
+        #'PORT': '3309',
 
     }
 }

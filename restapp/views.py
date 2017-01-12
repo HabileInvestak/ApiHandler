@@ -63,7 +63,6 @@ def get_initial_token(request):
         # print "publick_key2_pem="+ public_key2_pem+"="
         private_key2_pem = get_private_key_pem(key_pair)
         # print "private_key2_pem=" + private_key2_pem
-
         public_key1 = import_key(public_key1_pem)
         # print "Before encryption"
         jData = encrypt(public_key2_pem, public_key1, 2048)
@@ -83,11 +82,9 @@ def get_initial_token(request):
         private_key2 = import_key(private_key2_pem)
         decrypted_public_key3 = decrypt(initial_public_key3, private_key2)
         print "=" + decrypted_public_key3 + "="
-
         #encoded_data = b64_encode(encrypted_data)
         # print "encoded=" + encoded_data
         #replace_data = replace_text(encoded_data, "\n", "")
-
         intial_token = replace_text(b64_encode(private_key2_pem),"\n","") + "-" \
                        + replace_text(b64_encode(decrypted_public_key3),"\n","") + "-" \
                        + replace_text(b64_encode(tomcat_count),"\n","")
@@ -132,6 +129,7 @@ def get_login_2fa(request):
 
 @api_view(["POST"])
 def get_valid_pwd(request):
+    print 'valid pwd'
     if request.method == 'POST':
         content = request.body
         url = base_url+'ValidPwd'
@@ -149,57 +147,116 @@ def get_valid_pwd(request):
         print authorization[1].replace("\n","")
         public_key3_pem = b64_decode(authorization[1].replace("\n",""))
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
-        #print ApiHomeDict.get('Login2FA')[0].url
-        #print InputDict.get('Login2FA').get('uid')[0].description
         jKey = get_jkey(public_key3_pem)
         userJSON=content = request.body
-        json.dumps(userJSON)
-
+        jsonObject = json.loads(userJSON)
         data = {}
-        data['key'] = 'value'
-        json_data = json.dumps(data)
+        for key in jsonObject:
+            value = jsonObject[key]
+            if key == "pwd":
+                value=password_hash(value)
 
-        print "userJSON"+userJSON
+            print("The key and value are ({}) = ({})".format(key, value))
+            data[key] = value
+        json_data = json.dumps(data)
+        print "userJSON123"+json_data
         public_key3=import_key(public_key3_pem)
-        jData = encrypt(userJSON,public_key3, 2048)
+        jData = encrypt(json_data,public_key3, 2048)
         tomcat_count=get_tomcat_count(tomcat_count)
         user_id=global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         return Response(output)
 
 
+@api_view(["POST"])
+def get_valid_ans(request):
+    print 'valid pwd'
+    if request.method == 'POST':
+        content = request.body
+        url = base_url+'ValidAns'
+        authorization = request.META.get('HTTP_AUTHORIZATION')
+        print "authorization"
+        print authorization
+        authorization=authorization.split("-")
+        print authorization
+        print "private key"
+        print authorization[0]
+        private_key2_pem=b64_decode(authorization[0].replace("\n",""))
+        print private_key2_pem
+        print "public key"
+        print authorization[1]
+        print authorization[1].replace("\n","")
+        public_key3_pem = b64_decode(authorization[1].replace("\n",""))
+        tomcat_count= b64_decode(authorization[2].replace("\n",""))
+        jKey = get_jkey(public_key3_pem)
+        userJSON=content = request.body
+        jsonObject = json.loads(userJSON)
+        data = {}
+        for key in jsonObject:
+            value = jsonObject[key]
+            #if key == "pwd":
+            #    value=password_hash(value)
+
+            print("The key and value are ({}) = ({})".format(key, value))
+            data[key] = value
+        json_data = json.dumps(data)
+        print "userJSON123"+json_data
+        public_key3=import_key(public_key3_pem)
+        jData = encrypt(json_data,public_key3, 2048)
+        tomcat_count=get_tomcat_count(tomcat_count)
+        user_id=global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        print output
+        print "Before loading data"
+        json_object_output=json.loads(output)
+        print "After loading data"
+        encrypted_data=json_object_output["jEncResp"]
+        print "encrypted_data="+encrypted_data
+       # private_key2 = import_key(private_key2_pem)
+       # decrypted_data=decrypt(encrypted_data,private_key2)
+       # return Response(decrypted_data)
+        return Response(output)
+
+
+def password_hash(password):
+    for num in range(0, 999):
+        password = hashlib.sha256(password).digest()
+    password_hash = hashlib.sha256(password).hexdigest()
+    return password_hash
+
+
 def send_sequest(body_content, url, authorization, user_id, tomcat_count, jKey, jData):
-    print 'body_content=' + body_content
+    #print 'body_content=' + body_content
     if isNotBlank(body_content):
-        print 'if body_content=' + body_content
+     #   print 'if body_content=' + body_content
         jsession_id = get_jsessionid(user_id)
-        print "jsession_id=" + jsession_id
+      #  print "jsession_id=" + jsession_id
         tomcat_count = get_tomcat_count(tomcat_count)
-        print "tomcat_count=" + tomcat_count
+      #  print "tomcat_count=" + tomcat_count
         if isNotBlank(jsession_id):
             url = url + "?jsessionid=" + jsession_id.strip()
         if isNotBlank(tomcat_count):
             url = url + "." + tomcat_count.strip()
-        print url
-        print jKey
-        print jData
-        print "Before values"
+       # print url
+       # print jKey
+       # print jData
+       # print "Before values"
         values = {'jKey': jKey,
                   'jData': jData}
-        print "After values"
+       # print "After values"
         data = urllib.urlencode(values)
-        print "1"
+       # print "1"
         req = urllib2.Request(url, data)
-        print "2"
+       # print "2"
         response = urllib2.urlopen(req)
-        print "3"
+       # print "3"
         the_page = response.read()
-        print "4"
+       # print "4"
         d = json.loads(the_page)
-        print "5"
+       # print "5"
         return d
     else:
-        print 'else'
+       # print 'else'
         resp = requests.post(url)
         # if resp.status_code != 200:
         #    raise ApiError('GET /tasks/ {}'.format(resp.status_code))
@@ -214,9 +271,9 @@ def get_cipher(key):
 
 
 def encrypt_block(key, data, start, end):
-    print "Start encrypt block"
+    #print "Start encrypt block"
     data = data[start:end]
-    print "partial length=" + str(len(data))
+    #print "partial length=" + str(len(data))
     # print "block data="+data
     # print key
     cipher = get_cipher(key)
@@ -227,12 +284,12 @@ def encrypt_block(key, data, start, end):
     # print "encoded=" + encoded_data
     replace_data = replace_text(encoded_data, "\n", "")
     # print "Replace data=" + replace_data
-    print "End encrypt block"
+    #print "End encrypt block"
     return replace_data
 
 
 def encrypt(data, key, key_size):
-    print 'encrypt method'
+    #print 'encrypt method'
     # print key_size
     # print BYTE_BOUNDARY
     buffer = ""
@@ -241,42 +298,42 @@ def encrypt(data, key, key_size):
     end = number_of_bytes
     if (number_of_bytes > len(data)):
         end = len(data)
-    print str(len(data))
-    print data + "=" + str(start) + "=" + str(end)
+    #print str(len(data))
+    #print data + "=" + str(start) + "=" + str(end)
     buffer = buffer + encrypt_block(key, data, start, end)
-    print "Buffer=" + buffer
+    #print "Buffer=" + buffer
     buffer = append_data(buffer, "\n")
-    print "After append=" + buffer
+    #print "After append=" + buffer
     start = end
     end += number_of_bytes
     if (end > len(data)):
         end = len(data)
 
     while (end < len(data)):
-        print "inside while"
+     #   print "inside while"
         buffer = buffer + encrypt_block(key, data, start, end)
-        print "While buffer=" + buffer
+      #  print "While buffer=" + buffer
         buffer = append_data(buffer, "\n")
-        print "While buffer append=" + buffer
+       # print "While buffer append=" + buffer
         start = end
         end += number_of_bytes
         if (end > len(data)):
             end = len(data)
     if (end - start > 0):
-        print 'while if'
-        print str(start) + "=" + str(end)
+        #print 'while if'
+        #print str(start) + "=" + str(end)
         buffer = buffer + encrypt_block(key, data, start, end)
-        print "While if buffer=" + buffer
+        #print "While if buffer=" + buffer
         buffer = append_data(buffer, "\n")
-        print "While if append buffer=" + buffer
+        #print "While if append buffer=" + buffer
 
-    print "End while"
-    print "buffer=" + buffer
+    #print "End while"
+    #print "buffer=" + buffer
     buffer = b64_encode(buffer)
     # print "encrypted_data final"+encrypted_data
     buffer = replace_text(buffer, "\n", "")
-    print "Replace data final" + buffer
-    print "encrypt end"
+    #print "Replace data final" + buffer
+    #print "encrypt end"
     return buffer
 
 
