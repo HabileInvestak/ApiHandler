@@ -12,3 +12,16 @@ class User(models.Model):
 
     class Meta:
         ordering = ('created',)
+
+class Audit(models.Model):
+    request_Time_Stamp = models.DateTimeField(auto_now_add=True)
+    response_Time_Stamp = models.DateTimeField(auto_now_add=True)
+    user_id = models.TextField()
+    request_id = models.AutoField(primary_key=True,unique=True,null=False)
+    request = models.TextField()
+    response = models.TextField()
+    status = models.TextField()
+
+
+    class Meta:
+        ordering = ('request_id',)

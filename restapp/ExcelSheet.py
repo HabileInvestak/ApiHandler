@@ -4,7 +4,8 @@ import json, ast
 
 from ExcelReadClass import *
 
-wb = open_workbook ("E:/Investak/Habile_Investak_API_Dictionary_20161130.xlsx")
+#wb = open_workbook ("E:/Investak/Habile_Investak_API_Dictionary_20161130.xlsx") #hari
+wb = open_workbook ("E:\\Investak\\investak\\Habile_Investak_API_Dictionary_1.1_20170119.xlsx") #ranjith
 
 
 # API
@@ -22,20 +23,22 @@ class ExcelSheetApi():
         for rownum in range(rows):
             if rownum==0:
                 continue
-            hashApi = str(sheet.cell(rownum, 0).value)
-            source = str(sheet.cell(rownum, 1).value)
-            subject = str(sheet.cell(rownum, 2).value)
-            ch = str(sheet.cell(rownum, 3).value)
-            apiName = str(sheet.cell(rownum, 4).value)
-            description = str(sheet.cell(rownum, 5).value)
-            url = str(sheet.cell(rownum, 6).value)
-            inputApi = str(sheet.cell(rownum, 7).value)
-            inputEncryption = str(sheet.cell(rownum, 8).value)
-            resonseEncryption = str(sheet.cell(rownum, 9).value)
-            notes = (sheet.cell(rownum, 10).value).encode('utf-8').strip()
-            inputSample = str(sheet.cell(rownum, 11).value)
+            hashApi = str(sheet.cell(rownum, 0).value).strip()
+            source = str(sheet.cell(rownum, 1).value).strip()
+            subject = str(sheet.cell(rownum, 2).value).strip()
+            ch = str(sheet.cell(rownum, 3).value).strip()
+            apiName = str(sheet.cell(rownum, 4).value).strip()
+            description = str(sheet.cell(rownum, 5).value).strip()
+            sourceUrl = str(sheet.cell(rownum, 6).value).strip().strip()
+            url = str(sheet.cell(rownum, 7).value).strip().strip()
+            logging = str(sheet.cell(rownum, 8).value).strip().strip()
+            inputApi = str(sheet.cell(rownum, 9).value).strip()
+            inputEncryption = str(sheet.cell(rownum, 10).value).strip()
+            resonseEncryption = str(sheet.cell(rownum, 11).value).strip()
+            notes = (sheet.cell(rownum, 12).value).encode('utf-8').strip()
+            inputSample = str(sheet.cell(rownum, 13).value).strip()
 
-            a=ApiClass(hashApi,source,subject,ch,apiName,description,url,inputApi,inputEncryption,resonseEncryption,notes,inputSample)
+            a=ApiClass(hashApi,source,subject,ch,apiName,description,sourceUrl,url,logging,inputApi,inputEncryption,resonseEncryption,notes,inputSample)
 
             ApiHomeDict[apiName] = [a]
 
@@ -64,21 +67,22 @@ class ExcelSheetInput():
 
             if rownum==0:
                 continue
-            inputColHash= str(sheet.cell(rownum,0).value)
-            apiName= str(sheet.cell(rownum,1).value)
-            sno =  str(sheet.cell(rownum, 2).value)
-            parameter = str(sheet.cell(rownum, 3).value)
+            inputColHash= str(sheet.cell(rownum,0).value).strip()
+            apiName= str(sheet.cell(rownum,1).value).strip()
+            sno =  str(sheet.cell(rownum, 2).value).strip()
+            parameter = str(sheet.cell(rownum, 3).value).strip()
             description =(sheet.cell(rownum, 4).value).encode('utf-8').strip()
-            businessTag =  str(sheet.cell(rownum, 5).value)
-            dataType = str(sheet.cell(rownum, 6).value)
-            validValues = str(sheet.cell(rownum, 7).value)
-            optional = str(sheet.cell(rownum, 8).value)
-            default = str(sheet.cell(rownum, 9).value)
-            transformation = str(sheet.cell(rownum, 10).value)
+            businessTag =  str(sheet.cell(rownum, 5).value).strip()
+            dataType = str(sheet.cell(rownum, 6).value).strip()
+            validValues = str(sheet.cell(rownum, 7).value).strip()
+            optional = str(sheet.cell(rownum, 8).value).strip()
+            default = str(sheet.cell(rownum, 9).value).strip()
+            transformation = str(sheet.cell(rownum, 10).value).strip()
+            investakScreenFieldSample = str(sheet.cell(rownum, 11).value).strip()
             if apiName not in InputDict:
                 InputDict[apiName] = {}
 
-            i=InputClass(inputColHash,apiName,sno,parameter,description,businessTag,dataType,validValues,optional,default,transformation)
+            i=InputClass(inputColHash,apiName,sno,parameter,description,businessTag,dataType,validValues,optional,default,transformation,investakScreenFieldSample)
             InputParamDict[parameter] = [i]
             for k, v in InputDict.items():
                 if k.__contains__(apiName):
@@ -109,17 +113,17 @@ class ExcelSheetSuccess():
         for rownum in range(rows):
             if rownum==0:
                 continue
-            successColHash= str(sheet.cell(rownum,0).value)
-            apiName= str(sheet.cell(rownum,1).value)
-            sno =  str(sheet.cell(rownum, 2).value)
-            parameter = str(sheet.cell(rownum, 3).value)
+            successColHash= str(sheet.cell(rownum,0).value).strip()
+            apiName= str(sheet.cell(rownum,1).value).strip()
+            sno =  str(sheet.cell(rownum, 2).value).strip()
+            parameter = str(sheet.cell(rownum, 3).value).strip()
             description = (sheet.cell(rownum, 4).value).encode('utf-8').strip()
-            businessTag =  str(sheet.cell(rownum, 5).value)
-            dataType = str(sheet.cell(rownum, 6).value)
-            validValues =  str(sheet.cell(rownum, 7).value)
-            optional =  str(sheet.cell(rownum, 8).value)
-            transformation =  str(sheet.cell(rownum, 9).value)
-            specialProcess = str(sheet.cell(rownum, 10).value)
+            businessTag =  str(sheet.cell(rownum, 5).value).strip()
+            dataType = str(sheet.cell(rownum, 6).value).strip()
+            validValues =  str(sheet.cell(rownum, 7).value).strip()
+            optional =  str(sheet.cell(rownum, 8).value).strip()
+            transformation =  str(sheet.cell(rownum, 9).value).strip()
+            specialProcess = str(sheet.cell(rownum, 10).value).strip()
             if apiName not in SuccessDict:
                 SuccessDict[apiName] = {}
             s=SuccessClass(successColHash,apiName,sno,parameter,description,businessTag,dataType,validValues,optional,transformation,specialProcess)
@@ -147,13 +151,13 @@ class ExcelSheetFailure():
         for rownum in range(rows):
             if rownum==0:
              continue
-            failureColHash= str(sheet.cell(rownum,0).value)
-            apiName= str(sheet.cell(rownum,1).value)
-            sno =str(sheet.cell(rownum, 2).value)
-            parameter =  str(sheet.cell(rownum, 3).value)
+            failureColHash= str(sheet.cell(rownum,0).value).strip()
+            apiName= str(sheet.cell(rownum,1).value).strip()
+            sno =str(sheet.cell(rownum, 2).value).strip()
+            parameter =  str(sheet.cell(rownum, 3).value).strip()
             description = (sheet.cell(rownum, 4).value).encode('utf-8').strip()
-            dataType =  str(sheet.cell(rownum, 5).value)
-            validValues =  str(sheet.cell(rownum, 6).value)
+            dataType =  str(sheet.cell(rownum, 5).value).strip()
+            validValues =  str(sheet.cell(rownum, 6).value).strip()
             if apiName not in FailureDict:
                 FailureDict[apiName] = {}
             f = FailureClass(failureColHash, apiName, sno, parameter, description,dataType, validValues)
@@ -180,13 +184,13 @@ class ExcelSheetJson():
         for rownum in range(rows):
             if rownum==0:
                 continue
-            jsonColHash= str(sheet.cell(rownum,0).value)
-            arrayName= str(sheet.cell(rownum,1).value)
-            sno =  str(sheet.cell(rownum, 2).value)
-            parameter =  str(sheet.cell(rownum, 3).value)
+            jsonColHash= str(sheet.cell(rownum,0).value).strip()
+            arrayName= str(sheet.cell(rownum,1).value).strip()
+            sno =  str(sheet.cell(rownum, 2).value).strip()
+            parameter =  str(sheet.cell(rownum, 3).value).strip()
             description =  (sheet.cell(rownum, 4).value).encode('utf-8').strip()
-            dataType =  str(sheet.cell(rownum, 5).value)
-            validValues =  str(sheet.cell(rownum, 6).value)
+            dataType =  str(sheet.cell(rownum, 5).value).strip()
+            validValues =  str(sheet.cell(rownum, 6).value).strip()
             if arrayName not in JsonDict:
                 JsonDict[arrayName] = {}
             j=JsonArrayClass(jsonColHash,arrayName,sno,parameter,description,dataType,validValues)
@@ -199,4 +203,38 @@ class ExcelSheetJson():
 
         return JsonDict
 #print jsonArrayDict
+
+
+#LISTS
+
+class ExcelSheetLists():
+
+    def listDict(self):
+        TempParamDict={}
+        sheet = wb.sheet_by_index(8)
+        rows=sheet.nrows
+        colmns=sheet.ncols
+        ListDict = {}
+        ListSourceDict = {}
+        for rownum in range(rows):
+            if rownum==0:
+                continue
+            listColHash= str(sheet.cell(rownum,0).value).strip()
+            listName= str(sheet.cell(rownum,1).value).strip()
+            listNo =  str(sheet.cell(rownum, 2).value).strip()
+            sourceValue =  str(sheet.cell(rownum, 3).value).strip()
+            targetValue =  str(sheet.cell(rownum, 4).value).strip()
+            dataType =  str(sheet.cell(rownum, 5).value).strip()
+            if listName not in ListDict:
+                ListDict[listName] = {}
+            l=ListClass(listColHash,listName,listNo,sourceValue,targetValue,dataType)
+
+            ListSourceDict[sourceValue] = [l]
+            for k, v in ListDict.items():
+                if k.__contains__(listName):
+                    TempParamDict[sourceValue] = ListSourceDict[sourceValue]
+                    ListDict[listName].update({sourceValue: TempParamDict[sourceValue]})
+
+        return ListDict
+#print ListDict
 

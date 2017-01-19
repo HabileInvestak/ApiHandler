@@ -19,12 +19,15 @@ i = ExcelSheetInput()
 s = ExcelSheetSuccess()
 f = ExcelSheetFailure()
 j = ExcelSheetJson()
+l = ExcelSheetLists()
 ApiHomeDict = a.apiHomeDict()
 InputDict = i.inputDict()
 SuccessDict = s.successDict()
 FailureDict = f.failureDict()
 JsonDict = j.jsonDict()
-ListOfDict=[ApiHomeDict,InputDict,SuccessDict,FailureDict,JsonDict]
+ListDict = l.listDict()
+
+ListOfDict=[ApiHomeDict,InputDict,SuccessDict,FailureDict,JsonDict,ListDict]
 #print ListOfDict
 print "call Loading dictioanry from excel once deployment"
 class ReturnAllDict:

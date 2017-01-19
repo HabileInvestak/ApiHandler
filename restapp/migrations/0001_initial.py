@@ -11,16 +11,27 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
+            name='Audit',
+            fields=[
+                ('request_Time_Stamp', models.DateTimeField(auto_now_add=True)),
+                ('response_Time_Stamp', models.DateTimeField(auto_now_add=True)),
+                ('user_id', models.TextField()),
+                ('request_id', models.AutoField(unique=True, serialize=False, primary_key=True)),
+                ('request', models.TextField()),
+                ('response', models.TextField()),
+                ('status', models.TextField()),
+            ],
+            options={
+                'ordering': ('request_id',),
+            },
+        ),
+        migrations.CreateModel(
             name='User',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('user_id', models.TextField()),
-                ('public_key2', models.TextField()),
-                ('public_key1', models.TextField()),
-                ('public_key3', models.TextField()),
-                ('public_key4', models.TextField()),
-                ('user_session_id', models.TextField()),
+                ('user_id', models.TextField(unique=True, serialize=False, primary_key=True)),
+                ('initial_token', models.TextField()),
+                ('access_token', models.TextField()),
             ],
             options={
                 'ordering': ('created',),
