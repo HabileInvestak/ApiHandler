@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from properties.p import Property
 from datetime import datetime
 
-
 import requests
 import json
 import hashlib
