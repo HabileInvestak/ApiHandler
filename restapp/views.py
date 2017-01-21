@@ -80,13 +80,17 @@ def get_initial_token(request):
             content=readProperty('YES')
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             stat = output.get (readProperty ('STATUS'))
+            emsg = output.get (readProperty ('ERROR'))
             initial_public_key3 = output[readProperty('PUBLIC_KEY3')]
             private_key2 = import_key(private_key2_pem)
             decrypted_public_key3 = decrypt(initial_public_key3, private_key2)
             print readProperty('SLASH_N')
             initial_token = replace_text(b64_encode(private_key2_pem),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(decrypted_public_key3),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(tomcat_count),"\n","")
             tso_response_audit (request_id, output)
-            output = {readProperty('STATUS'):stat,readProperty('INITIAL_TOKEN'): initial_token}  #default validation ok
+            if stat==readProperty('OK'):
+                output = {readProperty('STATUS'):stat,readProperty('INITIAL_TOKEN'): initial_token}
+            else:
+                output = {readProperty ('STATUS'): stat,readProperty ('ERROR'): emsg}
             # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
             api_response_audit (request_id, output)
             return Response(output)
@@ -291,6 +295,7 @@ def get_valid_ans(request):
             user_id=global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             stat = output.get (readProperty ('STATUS'))
+            emsg = output.get (readProperty ('ERROR_MSG'))
             encrypted_data=output["jEncResp"]
             private_key2 = import_key(private_key2_pem)
             decrypted_data=decrypt(encrypted_data,private_key2)
@@ -302,7 +307,7 @@ def get_valid_ans(request):
                            + replace_text(b64_encode(tomcat_count), "\n", "")
                 output = {readProperty('STATUS'): stat,readProperty('ACCESS_TOKEN'): access_token}
             else:
-                output = {readProperty('STATUS'): stat,readProperty('ERROR_MSG'): readProperty('108')}
+                output = {readProperty('STATUS'): stat,readProperty('ERROR_MSG'): emsg}
             # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
             api_response_audit (request_id, output)
             return Response(output)
