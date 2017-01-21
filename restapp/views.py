@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from properties.p import Property
+from datetime import datetime
+
 
 import requests
 import json
@@ -16,6 +18,7 @@ from Crypto.PublicKey import RSA
 from Crypto import Random
 from Crypto.Cipher import PKCS1_v1_5
 from rest_example.wsgi import ReturnAllDict
+from restapp.models import Audit
 
 e = ReturnAllDict()
 AllList = e.returnDict()
@@ -34,7 +37,7 @@ BYTE_DIFFERENCE = 11
 KEY_SIZE = 2048
 
 prop = Property()
-#prop_obj = prop.load_property_files('D:\\InvestAK\\investak.properties')
+#prop_obj = prop.load_property_files('D:\\InvestAK\\investak.properties')  #hari
 prop_obj = prop.load_property_files('E:\\Investak\\investak\\investak.properties')  #ranjith
 
 def readProperty(name):
@@ -173,8 +176,8 @@ def get_normal_login(request):
 @api_view([readProperty ('METHOD_TYPE')])
 def get_default_login(request):
     if request.method == readProperty ('METHOD_TYPE'):
-        url = ApiHomeDict.get(readProperty("GET_PRE_AUTHENTICATION_KEY"))[0].url
-        apiName = readProperty ("GET_PRE_AUTHENTICATION_KEY")
+        url = ApiHomeDict.get(readProperty("DEFAULT_LOGIN"))[0].url
+        apiName = readProperty ("DEFAULT_LOGIN")
         authorization = request.META.get('HTTP_AUTHORIZATION')
         authorization=authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n",""))
@@ -209,29 +212,72 @@ def get_valid_pwd(request):
         jKey = get_jkey(public_key3_pem)
         userJSON=content = request.body
         jsonObject = checkJson(content)
-        data = {}
-        for key in jsonObject:
-            value = jsonObject[key]
-            if key == readProperty('PASSWORD'):
-                value=password_hash(value)
-            data[key] = value
+        data=PasswordHash(jsonObject)
         jsonObject = data
+        request_id=investak_request_audit(global_user_id,jsonObject)
         print 'jsonObject ',jsonObject
         data = validation_and_manipulation (jsonObject,apiName,InputDict)
         print 'data ', data
         if 'stat' in data:
+            #status=readProperty('F')
+            api_response_audit(request_id,data,status)
             return Response(data)
         else:
+            api_request_audit (request_id, data)
             print 'after validate '
             json_data = json.dumps (data)
             public_key3=import_key(public_key3_pem)
             jData = encrypt(json_data,public_key3, 2048)
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=global_user_id
+            #output=''
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            tso_response_audit (request_id, output,status)
+            #data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,status)
             return Response(output)
 
+def investak_request_audit(userId,request):
+    request_id=''
+    dateNow = datetime.now ()
+    Auditobj=Audit(user_id=userId,investak_request= request,investak_request_time_stamp=dateNow)
+    Auditobj.save()
+    request_id=Auditobj.request_id
+    print 'investak_request_audit ',request
+    print 'request_id ',request_id
 
+    '''print 'dateNow ',dateNow
+    Auditobj = Audit.objects.get(investak_request_time_stamp=dateNow)
+    print 'Auditobj ', Auditobj.investak_request_time_stamp'''
+
+    return request_id
+
+def api_request_audit(request_id,request):
+    dateNow = datetime.now ()
+
+    obj, created = Audit.objects.update_or_create (
+        request_id=request_id,
+        defaults={'api_request': request,'api_request_time_stamp':dateNow},
+    )
+    print 'api_request_audit ',request
+
+def api_response_audit(request_id,request,status):
+    dateNow = datetime.now ()
+
+    obj, created = Audit.objects.update_or_create (
+        request_id=request_id,
+        defaults={'api_response': request,'api_response_time_stamp':dateNow},
+    )
+    print 'api_response_audit ',request
+
+def tso_response_audit(request_id,request,status):
+    dateNow = datetime.now ()
+
+    obj, created = Audit.objects.update_or_create (
+        request_id=request_id,
+        defaults={'tso_response': request,'tso_response_time_stamp':dateNow},
+    )
+    print 'tso_response_audit ',request
 
 @api_view([readProperty ('METHOD_TYPE')])
 def get_valid_ans(request):
@@ -1287,3 +1333,12 @@ def checkJson(text):
     except ValueError as e:
         print('invalid json: %s' % e)
         return text # or: raise
+
+def PasswordHash(jsonObject):
+    data={}
+    for key in jsonObject:
+        value = jsonObject[key]
+        if key == readProperty ('PASSWORD'):
+            value = password_hash (value)
+        data[key] = value
+    return data

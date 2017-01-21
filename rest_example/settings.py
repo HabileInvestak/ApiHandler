@@ -82,8 +82,8 @@ DATABASES = {
         'NAME': 'investak_api_handler',
         'USER': 'postgres',
         'PASSWORD': 'password',
-        #'HOST': '127.0.0.1',
-        #'PORT': '3309',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
 
     }
 }
@@ -94,13 +94,13 @@ DATABASES = {
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+#USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)

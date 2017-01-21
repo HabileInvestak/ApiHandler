@@ -13,13 +13,18 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Audit',
             fields=[
-                ('request_Time_Stamp', models.DateTimeField(auto_now_add=True)),
-                ('response_Time_Stamp', models.DateTimeField(auto_now_add=True)),
+                ('investak_request_time_stamp', models.DateTimeField(null=True)),
+                ('api_request_time_stamp', models.DateTimeField(null=True)),
+                ('tso_response_time_stamp', models.DateTimeField(null=True)),
+                ('api_response_time_stamp', models.DateTimeField(null=True)),
                 ('user_id', models.TextField()),
                 ('request_id', models.AutoField(unique=True, serialize=False, primary_key=True)),
-                ('request', models.TextField()),
-                ('response', models.TextField()),
-                ('status', models.TextField()),
+                ('investak_request', models.TextField()),
+                ('api_request', models.TextField()),
+                ('tso_response', models.TextField()),
+                ('api_response', models.TextField()),
+                ('api_status', models.TextField()),
+                ('tso_status', models.TextField()),
             ],
             options={
                 'ordering': ('request_id',),
