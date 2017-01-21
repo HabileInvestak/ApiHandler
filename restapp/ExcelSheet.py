@@ -9,7 +9,6 @@ wb = open_workbook ("E:\\Investak\\investak\\Habile_Investak_API_Dictionary_1.1_
 
 
 # API
-
 class ExcelSheetApi():
 
     def apiHomeDict(self):
