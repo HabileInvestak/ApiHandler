@@ -122,8 +122,8 @@ def get_login_2fa(request):
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
+            dictionary = tso_response_audit (request_id, output)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output)
             return Response(output)
 
@@ -262,8 +262,8 @@ def get_valid_pwd(request):
             user_id=global_user_id
             #output=''
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            #data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
+            dictionary=tso_response_audit (request_id, output)
+            output = validation_and_manipulation (output, apiName, dictionary)  #manipulation logic and call api_response_audit
             api_response_audit (request_id, output)
             return Response(output)
 
@@ -929,17 +929,17 @@ def get_logout(request):
 
 
 
-def validation_and_manipulation(jsonObject,apiName,InputDict):
-
+def validation_and_manipulation(jsonObject,apiName,Dict):
     data={}
+
     data = validation_CheckInput (jsonObject, apiName, ApiHomeDict)
     if not data:
-        data = validation_Parameter (jsonObject, apiName, InputDict)
+        data = validation_Parameter (jsonObject, apiName, Dict)
     if not data:
-        jsonObject = manipulation_Default (jsonObject, apiName, InputDict)
-        data = validation_All (jsonObject, apiName, InputDict)
+        jsonObject = manipulation_Default (jsonObject, apiName, Dict)
+        data = validation_All (jsonObject, apiName, Dict)#see
     if not data:
-        jsonObject = manipulation_Transformation(jsonObject, apiName, InputDict)
+        jsonObject = manipulation_Transformation(jsonObject, apiName, Dict)
         data=jsonObject
         print 'Actual Data'
 
@@ -947,7 +947,7 @@ def validation_and_manipulation(jsonObject,apiName,InputDict):
 
 
 def manipulation_Transformation(jsonObject, apiName, dict):
-    if jsonObject:
+    if jsonObject and  not dict==FailureDict and not dict==JsonDict:
         for param, value in jsonObject.items():
             transformation= dict.get(apiName).get(param)[0].transformation
             value = transformationValidation (transformation, value)
@@ -956,7 +956,7 @@ def manipulation_Transformation(jsonObject, apiName, dict):
 
 
 def manipulation_Default(jsonObject, apiName, dict):
-    if jsonObject:
+    if jsonObject and dict==InputDict:
         for param, value in jsonObject.items():
 
             default= dict.get(apiName).get(param)[0].default
@@ -989,15 +989,16 @@ def defaultValidation(default,Paramvalue):
 
 def validation_CheckInput(jsonObject,apiName,Dict):
     data = {}
-    Param = CheckInputBody (jsonObject, apiName, Dict)
-    checkParam = Param[0]
-    print checkParam
-    errorParam = Param[1]
-    print errorParam
-    stat = Param[2]
-    print stat
-    if (checkParam == False):
-        data = sendErrorRequesterror (errorParam, stat)
+    if (Dict == InputDict):
+        Param = CheckInputBody (jsonObject, apiName, Dict)
+        checkParam = Param[0]
+        print checkParam
+        errorParam = Param[1]
+        print errorParam
+        stat = Param[2]
+        print stat
+        if (checkParam == False):
+            data = sendErrorRequesterror (errorParam, stat)
     return  data
 
 
@@ -1050,13 +1051,14 @@ def checkAll(content,ApiName,dict):
     for param, value in content.items():
         dataType= dict.get(ApiName).get(param)[0].dataType
         validValues= dict.get(ApiName).get(param)[0].validValues
-        optional= dict.get(ApiName).get(param)[0].optional
-
-        errorList=dataTypeValidation(dataType,value,param)
+        if not dict==FailureDict and not dict==JsonDict:
+            optional= dict.get(ApiName).get(param)[0].optional
+        errorList=dataTypeValidation(dataType,value,param,dict,validValues)  #see test
         errorListAll.extend (errorList)
-        errorList = ValidValuesValidation (validValues, value, param)
+        errorList = ValidValuesValidation (validValues, value, param) #see
         errorListAll.extend (errorList)
-        errorList = optionalValidation (optional, value, param)
+        if not dict == FailureDict and not dict==JsonDict:
+            errorList = optionalValidation (optional, value, param)
         errorListAll.extend(errorList)
 
     if errorListAll:
@@ -1073,7 +1075,15 @@ def ValidValuesValidation(validValues,Paramvalue,param):
     if isBlank(validValues):
         pass
     else:
-        if isNotBlank(Paramvalue) and Paramvalue in validValues:
+        check=1
+        words = validValues.split (',')
+        for word in words:
+            print 'word ',word
+            if (Paramvalue == word):
+                print 'yes'
+                check = 0
+        print 'check ',check
+        if isNotBlank(Paramvalue) and check==0:
             pass
         else:
             errorMsg=param+" "+readProperty('104')+" "+validValues
@@ -1098,7 +1108,7 @@ def optionalValidation(optional, Paramvalue, param):
         errorList.append (errorMsg)
     return errorList
 
-def dataTypeValidation(dataType,Paramvalue,param):
+def dataTypeValidation(dataType,Paramvalue,param,dict,validValues):
     errorList = []
     errorMsg=''
     if (dataType == readProperty('STRING')):
@@ -1143,7 +1153,7 @@ def dataTypeValidation(dataType,Paramvalue,param):
             errorMsg = param + " " +readProperty('102') + " " + dataType
             print errorMsg
 
-    elif (dataType == readProperty('DATE_TIME')):
+    elif (dataType == readProperty('DATE_TIME') and dict==InputDict):
         print type (Paramvalue)
         timestamp = time.strftime ('%m/%d/%Y/%w/%H:%M:%S')
         Date=validateDate (Paramvalue)
@@ -1155,10 +1165,40 @@ def dataTypeValidation(dataType,Paramvalue,param):
             errorMsg = param + " " +readProperty('103') + " " + dataType
             print errorMsg
 
+    elif (dataType == readProperty ('URL')):
+
+        if exist_Url(Paramvalue):
+            print 'correct url'
+            pass
+        else:
+            errorMsg = param + " " + readProperty ('102') + " " + dataType
+            print errorMsg
+
+    elif (dataType == readProperty ('JSON')):
+        data={}
+        print 'JSON data type validation'
+        print 'param Value'
+        #data = validation_and_manipulation (jsonObject, apiName, InputDict)
+        data=validation_and_manipulation(Paramvalue, validValues, JsonDict)
+        if readProperty('STATUS') in data:
+            List = data.get (readProperty ('ERROR_MSG'))
+            for errorMsg in List:
+                errorList.append (errorMsg)
+
     # SSBOETOD need write
+
     if errorMsg:
         errorList.append (errorMsg)
     return errorList
+
+
+def exist_Url(path):
+    r = requests.head (path)
+
+    print r.status_code
+
+    return r.status_code == requests.codes.ok
+
 
 def validateDate(date_text):
 
@@ -1274,15 +1314,17 @@ def tso_response_audit(request_id,request):
     stat = request.get (readProperty('STATUS'))
     if stat == readProperty ('OK'):
         tso_status = readProperty('SUCCESS')
+        dictionary=SuccessDict
     else:
         tso_status = readProperty('FAILURE')
+        dictionary=FailureDict
     print  'tso_status ',tso_status
     obj, created = Audit.objects.update_or_create (
         request_id=request_id,
         defaults={readProperty('TSO_RESPONSE'): request,readProperty('TSO_RESPONSE_TIME_STAMP'):dateNow,readProperty('TSO_STATUS'):tso_status},
     )
     print 'tso_response_audit ',request
-
+    return dictionary
 
 
 def password_hash(password):
