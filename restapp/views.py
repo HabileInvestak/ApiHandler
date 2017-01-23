@@ -4,7 +4,6 @@ from rest_framework.response import Response
 from properties.p import Property
 from datetime import datetime
 
-
 import requests
 import json
 import hashlib
@@ -29,6 +28,7 @@ FailureDict = AllList[3]
 JsonDict = AllList[4]
 ListDict = AllList[5]
 
+
 global_user_id = "UTEST3"
 private_key2_pem = ""
 tomcat_count = ""
@@ -36,8 +36,9 @@ BYTE_BOUNDARY = 8
 BYTE_DIFFERENCE = 11
 KEY_SIZE = 2048
 
+
 prop = Property()
-#prop_obj = prop.load_property_files('D:\\InvestAK\\investak.properties')  #hari
+prop_obj = prop.load_property_files('D:\\InvestAK\\investak.properties')  #hari
 prop_obj = prop.load_property_files('E:\\Investak\\investak\\investak.properties')  #ranjith
 
 def readProperty(name):
