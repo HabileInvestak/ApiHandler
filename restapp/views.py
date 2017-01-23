@@ -91,7 +91,7 @@ def get_initial_token(request):
                 output = {readProperty('STATUS'):stat,readProperty('INITIAL_TOKEN'): initial_token}
             else:
                 output = {readProperty ('STATUS'): stat,readProperty ('ERROR'): emsg}
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
+            #data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
             api_response_audit (request_id, output)
             return Response(output)
 
@@ -1177,7 +1177,8 @@ def dataTypeValidation(dataType,Paramvalue,param,dict,validValues):
     elif (dataType == readProperty ('JSON')):
         data={}
         print 'JSON data type validation'
-        print 'param Value'
+        print 'param Value ',Paramvalue
+        print 'validValues ',validValues
         #data = validation_and_manipulation (jsonObject, apiName, InputDict)
         data=validation_and_manipulation(Paramvalue, validValues, JsonDict)
         if readProperty('STATUS') in data:
