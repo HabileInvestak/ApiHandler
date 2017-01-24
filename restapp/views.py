@@ -1298,10 +1298,11 @@ def checkAll(content,ApiName,dict):
     errorMsg=''
     errorList=[]
     errorListAll=[]
-
+    print 'content', content
     for param, value in content.items():
         dataType= dict.get(ApiName).get(param)[0].dataType
         validValues= dict.get(ApiName).get(param)[0].validValues
+        print 'validValues',validValues
         if not dict==FailureDict and not dict==JsonDict:
             optional= dict.get(ApiName).get(param)[0].optional
             errorList = optionalValidation (optional, value, param)
@@ -1312,7 +1313,7 @@ def checkAll(content,ApiName,dict):
         if not errorList:
             errorList = ValidValuesValidation (validValues, value, param,dataType)
             errorListAll.extend (errorList)
-
+        errorList=[]
 
     if errorListAll:
         check = False

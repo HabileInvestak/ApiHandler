@@ -1,5 +1,10 @@
 from properties.p import Property
 
+
+content={u'stat': u'Not_Ok', u'Emsg': u'Session Expired'}
+for param, value in content.items():
+    print 'validValues', value
+
 #string = "[0]  Invalid value. expected [1] available [2]"
 param='logDevice'
 validValues='AND,IOS'
@@ -32,14 +37,14 @@ try:
     print string
 except Exception as e:
     print "exception is ",e
-    sendResponse(e)
+    #sendResponse(e)
 
     stat = readProperty ('NOT_OK')
     errorList = []
     errorMsg = e
     print errorMsg
     errorList.append(errorMsg)
-    sendErrorRequesterror(errorList,stat)
+    #sendErrorRequesterror(errorList,stat)
 
 i=len(errorList)
 print i
