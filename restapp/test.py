@@ -22,11 +22,33 @@ arrayValue = ['hi','none']
 
 string=readProperty('109')
 print 'string ',string
-for index, item in enumerate (arrayValue):
-    index = str(index)
-    if type(item)==int:
-        item = str(item)
-    newstr = string.replace('['+index+']',item)
-    string = newstr
-print string
+try:
+    for index, item in enumerate (arrayValue):
+        index = index
+        if type(item)==int:
+            item = str(item)
+        newstr = string.replace('['+index+']',item)
+        string = newstr
+    print string
+except Exception as e:
+    print "exception is ",e
+    sendResponse(e)
 
+    stat = readProperty ('NOT_OK')
+    errorList = []
+    errorMsg = e
+    print errorMsg
+    errorList.append(errorMsg)
+    sendErrorRequesterror(errorList,stat)
+
+i=len(errorList)
+print i
+response_data = {}
+for v in errorList:
+
+    response_data.setdefault(readProperty('ERROR_MSG'),[])
+    response_data[readProperty('ERROR_MSG')].append(v)
+    response_data[readProperty('STATUS')] = stat
+
+print 'response_data',response_data
+print response_data

@@ -1829,8 +1829,6 @@ def isNotBlank(myString):
 
 
 def checkJson(text):
-    errorList=[]
-    #abc={}
     key = '1'
     print 'checkJson1'
     try:
@@ -1839,7 +1837,7 @@ def checkJson(text):
         abc = json.loads(text)
         print 'checkJson3',abc
         return key
-    except ValueError as e:
+    except Exception as e:
         print('invalid json: %s' % e)
         key='0'
         return key
