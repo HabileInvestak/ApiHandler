@@ -349,32 +349,32 @@ def get_valid_ans(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key3=import_key(public_key3_pem)
-            jData = encrypt(json_data,public_key3, 2048)
-            tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            stat = output.get (readProperty ('STATUS'))
-            emsg = output.get (readProperty ('ERROR_MSG'))
-            encrypted_data=output["jEncResp"]
-            private_key2 = import_key(private_key2_pem)
-            decrypted_data=decrypt(encrypted_data,private_key2)
-            decrypted_json = json.loads(decrypted_data)
-            dictionary =tso_response_audit (request_id, output,apiName)
-            if decrypted_json[readProperty('STATUS')]==readProperty('OK'):
-                access_token = replace_text(b64_encode(private_key2_pem), "\n", "") + "-" \
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key3=import_key(public_key3_pem)
+        jData = encrypt(json_data,public_key3, 2048)
+        tomcat_count=get_tomcat_count(tomcat_count)
+        user_id=global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        stat = output.get (readProperty ('STATUS'))
+        emsg = output.get (readProperty ('ERROR_MSG'))
+        encrypted_data=output["jEncResp"]
+        private_key2 = import_key(private_key2_pem)
+        decrypted_data=decrypt(encrypted_data,private_key2)
+        decrypted_json = json.loads(decrypted_data)
+        dictionary =tso_response_audit (request_id, output,apiName)
+        if decrypted_json[readProperty('STATUS')]==readProperty('OK'):
+            access_token = replace_text(b64_encode(private_key2_pem), "\n", "") + "-" \
                            + replace_text(b64_encode(decrypted_json["sUserToken"]), "\n", "") + "-" \
                            + replace_text(b64_encode(tomcat_count), "\n", "")
-                output = {readProperty('STATUS'): stat,readProperty('ACCESS_TOKEN'): access_token}
-            else:
-                output = {readProperty('STATUS'): stat,readProperty('ERROR_MSG'): emsg}
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+            output = {readProperty('STATUS'): stat,readProperty('ACCESS_TOKEN'): access_token}
+        else:
+            output = {readProperty('STATUS'): stat,readProperty('ERROR_MSG'): emsg}
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 '''Provides you with account details'''
@@ -404,19 +404,19 @@ def get_account_info(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4=import_key(public_key4_pem)
-            jData = encrypt(json_data,public_key4, 2048)
-            tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4=import_key(public_key4_pem)
+        jData = encrypt(json_data,public_key4, 2048)
+        tomcat_count=get_tomcat_count(tomcat_count)
+        user_id=global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 @api_view([readProperty ('METHOD_TYPE')])
@@ -450,19 +450,19 @@ def get_load_retention_type(request):
         if 'stat' in data:
             api_response_audit (request_id, data)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4=import_key(public_key4_pem)
-            jData = encrypt(json_data,public_key4, 2048)
-            tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4=import_key(public_key4_pem)
+        jData = encrypt(json_data,public_key4, 2048)
+        tomcat_count=get_tomcat_count(tomcat_count)
+        user_id=global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output)
+        return Response(output)
 
 
 '''Check circuit limt for the order price'''
@@ -492,19 +492,19 @@ def get_check_crkt_price_range(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 '''GTD validations are done if retention is selected '''
@@ -534,19 +534,19 @@ def get_validate_GTD(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 '''Validates Stop loss price'''
 @api_view([readProperty ('METHOD_TYPE')])
@@ -575,19 +575,19 @@ def get_validate_SLM_price(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 '''Allows you to place order for selected scrip'''
@@ -617,19 +617,19 @@ def get_place_order(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 '''Allows you to view the placed orders and their status'''
@@ -659,19 +659,19 @@ def get_order_book(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 '''Allows you to modify open orders'''
@@ -701,19 +701,19 @@ def get_modify_order(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 '''Allows you to cancel an open order'''
 @api_view([readProperty('METHOD_TYPE')])
@@ -742,19 +742,19 @@ def get_cancel_order(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 '''Allows you to view the order history for the Order.'''
 @api_view([readProperty ('METHOD_TYPE')])
@@ -783,19 +783,19 @@ def get_order_history(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 '''Allows you to view trade details'''
 @api_view([readProperty('METHOD_TYPE')])
@@ -824,19 +824,19 @@ def get_trade_book(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 '''This Allows user to view the holdings'''
 @api_view([readProperty ('METHOD_TYPE')])
@@ -865,19 +865,19 @@ def get_holding(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 '''Allows you to view segment w ise RMS limits'''
@@ -907,19 +907,19 @@ def get_limits(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 '''Provides you w ith user details'''
@@ -949,19 +949,19 @@ def get_user_profile(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 '''Provides you with account details'''
@@ -991,19 +991,19 @@ def get_account_info(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 '''Loads open order to set alerts based on trade.'''
 @api_view([readProperty ('METHOD_TYPE')])
@@ -1032,19 +1032,19 @@ def get_open_orders(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 
@@ -1075,19 +1075,19 @@ def get_bo_holdings(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 '''List of End of the day underlying Trades for holdings for the clients'''
@@ -1117,19 +1117,19 @@ def get_bo_Ul_Trades(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 '''Allows you to logout from the application'''
@@ -1159,19 +1159,19 @@ def get_logout(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4 = import_key(public_key4_pem)
-            jData = encrypt(json_data, public_key4, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4 = import_key(public_key4_pem)
+        jData = encrypt(json_data, public_key4, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 
