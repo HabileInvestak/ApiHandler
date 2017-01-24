@@ -133,18 +133,18 @@ def get_login_2fa(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate'
-            api_request_audit (request_id, data, apiName)
-            public_key3=import_key(public_key3_pem)
-            jData = encrypt(userJSON,public_key3, 2048)
-            tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate'
+        api_request_audit (request_id, data, apiName)
+        public_key3=import_key(public_key3_pem)
+        jData = encrypt(userJSON,public_key3, 2048)
+        tomcat_count=get_tomcat_count(tomcat_count)
+        user_id=global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 '''Provide you with pre-authentication key for encryption'''
@@ -174,19 +174,19 @@ def get_login(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key3 = import_key(public_key3_pem)
-            jData = encrypt(json_data, public_key3, 2048)
-            tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key3 = import_key(public_key3_pem)
+        jData = encrypt(json_data, public_key3, 2048)
+        tomcat_count = get_tomcat_count(tomcat_count)
+        user_id = global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
 '''Provide you with pre-authentication key for encryption'''
@@ -217,24 +217,24 @@ def get_normal_login(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key3=import_key(public_key3_pem)
-            jData = encrypt(json_data,public_key3, 2048)
-            tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            encrypted_data = output["jEncResp"]
-            private_key2 = import_key(private_key2_pem)
-            decrypted_data = decrypt(encrypted_data,private_key2)
-            decrypted_json = json.loads(decrypted_data)
-            print decrypted_json
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key3=import_key(public_key3_pem)
+        jData = encrypt(json_data,public_key3, 2048)
+        tomcat_count=get_tomcat_count(tomcat_count)
+        user_id=global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        encrypted_data = output["jEncResp"]
+        private_key2 = import_key(private_key2_pem)
+        decrypted_data = decrypt(encrypted_data,private_key2)
+        decrypted_json = json.loads(decrypted_data)
+        print decrypted_json
+        return Response(output)
 
 '''Gives you information about client enabled data'''
 @api_view([readProperty ('METHOD_TYPE')])
@@ -263,19 +263,19 @@ def get_default_login(request):
         if 'stat' in data:
             api_response_audit (request_id, data,apiName)
             return Response (data)
-        else:
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps(data)
-            public_key4=import_key(public_key4_pem)
-            jData = encrypt(json_data,public_key4, 2048)
-            tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps(data)
+        public_key4=import_key(public_key4_pem)
+        jData = encrypt(json_data,public_key4, 2048)
+        tomcat_count=get_tomcat_count(tomcat_count)
+        user_id=global_user_id
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary = tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 '''Authenticates the user with password'''
 @api_view([readProperty ('METHOD_TYPE')])
@@ -304,22 +304,22 @@ def get_valid_pwd(request):
         if 'stat' in data:
             api_response_audit(request_id,data,apiName)
             return Response(data)
-        else:
-            data = PasswordHash(data)
-            print 'after validate '
-            api_request_audit (request_id, data, apiName)
-            api_request_audit (request_id, data, apiName)
-            json_data = json.dumps (data)
-            public_key3=import_key(public_key3_pem)
-            jData = encrypt(json_data,public_key3, 2048)
-            tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
-            #output=''
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary=tso_response_audit (request_id, output,apiName)
-            output = validation_and_manipulation (output, apiName, dictionary)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
-            return Response(output)
+
+        data = PasswordHash(data)
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        api_request_audit (request_id, data, apiName)
+        json_data = json.dumps (data)
+        public_key3=import_key(public_key3_pem)
+        jData = encrypt(json_data,public_key3, 2048)
+        tomcat_count=get_tomcat_count(tomcat_count)
+        user_id=global_user_id
+        #output=''
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        dictionary=tso_response_audit (request_id, output,apiName)
+        output = validation_and_manipulation (output, apiName, dictionary)  #manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 '''Authenticates the answers in 2FA Q&A mode'''
 @api_view([readProperty ('METHOD_TYPE')])
