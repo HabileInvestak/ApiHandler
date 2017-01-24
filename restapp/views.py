@@ -37,14 +37,15 @@ BYTE_DIFFERENCE = 11
 KEY_SIZE = 2048
 
 
-prop = Property()
-prop_obj = prop.load_property_files('D:\\InvestAK\\investak.properties')  #hari
-prop_obj = prop.load_property_files('E:\\Investak\\investak\\investak.properties')  #ranjith
+prop = Property ()
+#prop_obj = prop.load_property_files('D:\\InvestAK\\investak.properties')  #hari
+prop_obj = prop.load_property_files ('E:\\Investak\\investak\\investak.properties')  # ranjith
 
 def readProperty(name):
     data=prop_obj.get (name)
     return data
 
+'''Provides you with initial Key for encryption '''
 @api_view([readProperty('METHOD_TYPE')])
 def get_initial_token(request):
     if request.method == readProperty('METHOD_TYPE'):
@@ -53,50 +54,58 @@ def get_initial_token(request):
         apiName = readProperty ("GET_INITIAL_KEY")
         print 'url',url
         authorization = request.META.get('HTTP_AUTHORIZATION')
-
-        #if isNotBlank (content):
-        jsonObject=checkJson(content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
-        data = validation_and_manipulation (jsonObject, apiName, InputDict)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
+        data = validation_and_manipulation (jsonObject, apiName,InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
-            return Response (data)
+            api_response_audit(request_id, data,apiName)
+            return Response(data)
+        print 'after validate '
+        api_request_audit (request_id, data, apiName)
+        output = send_sequest(content, url, authorization, user_id="", tomcat_count="", jKey="", jData="")
+        d = json.loads(output)
+        initial_public_key1 = d[readProperty('PUBLIC_KEY')]
+        tomcat_count = d[readProperty('TOMCAT_COUNT')]
+        public_key1_pem = b64_decode(initial_public_key1)
+        key_pair = generate_key_pair()
+        public_key2_pem = get_public_key_pem(key_pair)
+        private_key2_pem = get_private_key_pem(key_pair)
+        public_key1 = import_key(public_key1_pem)
+        jData = encrypt(public_key2_pem, public_key1, 2048)
+        jKey = get_jkey(public_key1_pem)
+        user_id = global_user_id
+
+        url = ApiHomeDict.get(readProperty('GET_PRE_AUTHENTICATION_KEY'))[0].url
+        content=readProperty('YES')
+        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+        stat = output.get (readProperty ('STATUS'))
+        emsg = output.get (readProperty ('ERROR'))
+        print 'tomcat_count ',tomcat_count
+        initial_public_key3 = output[readProperty('PUBLIC_KEY3')]
+        private_key2 = import_key(private_key2_pem)
+        decrypted_public_key3 = decrypt(initial_public_key3, private_key2)
+        print readProperty('SLASH_N')
+        initial_token = replace_text(b64_encode(private_key2_pem),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(decrypted_public_key3),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(tomcat_count),"\n","")
+        dictionary =tso_response_audit (request_id, output,apiName)
+        if stat==readProperty('OK'):
+            output = {readProperty('STATUS'):stat,readProperty('INITIAL_TOKEN'): initial_token,readProperty('TOMCAT_COUNT'):tomcat_count}
         else:
-            print 'after validate '
-            output = send_sequest(content, url, authorization, user_id="", tomcat_count="", jKey="", jData="")
-            d = json.loads(output)
-            initial_public_key1 = d[readProperty('PUBLIC_KEY')]
-            tomcat_count = d[readProperty('TOMCAT_COUNT')]
-            public_key1_pem = b64_decode(initial_public_key1)
-            key_pair = generate_key_pair()
-            public_key2_pem = get_public_key_pem(key_pair)
-            private_key2_pem = get_private_key_pem(key_pair)
-            public_key1 = import_key(public_key1_pem)
-            jData = encrypt(public_key2_pem, public_key1, 2048)
-            jKey = get_jkey(public_key1_pem)
-            user_id = global_user_id
-
-            url = ApiHomeDict.get(readProperty('GET_PRE_AUTHENTICATION_KEY'))[0].url
-            content=readProperty('YES')
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            stat = output.get (readProperty ('STATUS'))
-            emsg = output.get (readProperty ('ERROR'))
-            initial_public_key3 = output[readProperty('PUBLIC_KEY3')]
-            private_key2 = import_key(private_key2_pem)
-            decrypted_public_key3 = decrypt(initial_public_key3, private_key2)
-            print readProperty('SLASH_N')
-            initial_token = replace_text(b64_encode(private_key2_pem),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(decrypted_public_key3),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(tomcat_count),"\n","")
-            tso_response_audit (request_id, output)
-            if stat==readProperty('OK'):
-                output = {readProperty('STATUS'):stat,readProperty('INITIAL_TOKEN'): initial_token}
-            else:
-                output = {readProperty ('STATUS'): stat,readProperty ('ERROR'): emsg}
-            #data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
-            return Response(output)
+            output = {readProperty ('STATUS'): stat,readProperty ('ERROR'): emsg}
+        output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+        api_response_audit (request_id, output,apiName)
+        return Response(output)
 
 
+'''First step in login'''
 @api_view([readProperty('METHOD_TYPE')])
 def get_login_2fa(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -109,26 +118,36 @@ def get_login_2fa(request):
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
         jKey = get_jkey(public_key3_pem)
         userJSON=content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data=dataArray[0]
+        BodyIn=dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn==True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
-            print 'after validate '
+            print 'after validate'
+            api_request_audit (request_id, data, apiName)
             public_key3=import_key(public_key3_pem)
             jData = encrypt(userJSON,public_key3, 2048)
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+'''Provide you with pre-authentication key for encryption'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_login(request):
     if request.method == readProperty('METHOD_TYPE'):
@@ -140,27 +159,37 @@ def get_login(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key3_pem)
         userJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key3 = import_key(public_key3_pem)
             jData = encrypt(json_data, public_key3, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+'''Provide you with pre-authentication key for encryption'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_normal_login(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -173,24 +202,33 @@ def get_normal_login(request):
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
         jKey = get_jkey(public_key3_pem)
         userJSON=content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key3=import_key(public_key3_pem)
             jData = encrypt(json_data,public_key3, 2048)
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             encrypted_data = output["jEncResp"]
             private_key2 = import_key(private_key2_pem)
             decrypted_data = decrypt(encrypted_data,private_key2)
@@ -198,7 +236,7 @@ def get_normal_login(request):
             print decrypted_json
             return Response(output)
 
-
+'''Gives you information about client enabled data'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_default_login(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -210,27 +248,36 @@ def get_default_login(request):
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
         jKey = get_jkey(public_key4_pem)
         requestJSON=content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4=import_key(public_key4_pem)
             jData = encrypt(json_data,public_key4, 2048)
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
-
+'''Authenticates the user with password'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_valid_pwd(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -242,20 +289,26 @@ def get_valid_pwd(request):
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
         jKey = get_jkey(public_key3_pem)
         userJSON=content = request.body
-        jsonObject = checkJson(content)
-        data=PasswordHash(jsonObject)
-        jsonObject = data
-        request_id=investak_request_audit(global_user_id,jsonObject)
-        print 'jsonObject ',jsonObject
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject,apiName,InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit(request_id,data)
+            api_response_audit(request_id,data,apiName)
             return Response(data)
         else:
-            api_request_audit (request_id, data)
+            data = PasswordHash(data)
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps (data)
             public_key3=import_key(public_key3_pem)
             jData = encrypt(json_data,public_key3, 2048)
@@ -263,11 +316,12 @@ def get_valid_pwd(request):
             user_id=global_user_id
             #output=''
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary=tso_response_audit (request_id, output)
+            dictionary=tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName, dictionary)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
+'''Authenticates the answers in 2FA Q&A mode'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_valid_ans(request):
     if request.method == readProperty('METHOD_TYPE'):
@@ -280,15 +334,24 @@ def get_valid_ans(request):
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
         jKey = get_jkey(public_key3_pem)
         userJSON=content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key3=import_key(public_key3_pem)
             jData = encrypt(json_data,public_key3, 2048)
@@ -301,7 +364,7 @@ def get_valid_ans(request):
             private_key2 = import_key(private_key2_pem)
             decrypted_data=decrypt(encrypted_data,private_key2)
             decrypted_json = json.loads(decrypted_data)
-            tso_response_audit (request_id, output)
+            dictionary =tso_response_audit (request_id, output,apiName)
             if decrypted_json[readProperty('STATUS')]==readProperty('OK'):
                 access_token = replace_text(b64_encode(private_key2_pem), "\n", "") + "-" \
                            + replace_text(b64_encode(decrypted_json["sUserToken"]), "\n", "") + "-" \
@@ -309,40 +372,50 @@ def get_valid_ans(request):
                 output = {readProperty('STATUS'): stat,readProperty('ACCESS_TOKEN'): access_token}
             else:
                 output = {readProperty('STATUS'): stat,readProperty('ERROR_MSG'): emsg}
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+'''Provides you with account details'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_account_info(request):
     if request.method == readProperty('METHOD_TYPE'):
-        url = ApiHomeDict.get(readProperty("GET_PRE_AUTHENTICATION_KEY"))[0].url
-        apiName = readProperty ("GET_PRE_AUTHENTICATION_KEY")
+        url = ApiHomeDict.get(readProperty("ACCOUNT_INFO"))[0].url
+        apiName = readProperty ("ACCOUNT_INFO")
         authorization = request.META.get('HTTP_AUTHORIZATION')
         authorization=authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n",""))
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
         jKey = get_jkey(public_key4_pem)
         requestJSON=content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4=import_key(public_key4_pem)
             jData = encrypt(json_data,public_key4, 2048)
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
@@ -350,7 +423,7 @@ def get_account_info(request):
 def get_login_by_pass(request):
     return ''
 
-
+'''Gives retention types for the particular exchange'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_load_retention_type(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -362,8 +435,16 @@ def get_load_retention_type(request):
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
         jKey = get_jkey(public_key4_pem)
         requestJSON=content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
@@ -371,18 +452,20 @@ def get_load_retention_type(request):
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4=import_key(public_key4_pem)
             jData = encrypt(json_data,public_key4, 2048)
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
+            dictionary = tso_response_audit (request_id, output)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output)
             return Response(output)
 
 
+'''Check circuit limt for the order price'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_check_crkt_price_range(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -394,27 +477,37 @@ def get_check_crkt_price_range(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+'''GTD validations are done if retention is selected '''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_validate_GTD(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -426,27 +519,36 @@ def get_validate_GTD(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
-        json_data = json.dumps(data)
-        public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
-        tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
-        output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-        tso_response_audit (request_id, output)
-        # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-        api_response_audit (request_id, output)
-        return Response(output)
+            api_request_audit (request_id, data, apiName)
+            json_data = json.dumps(data)
+            public_key4 = import_key(public_key4_pem)
+            jData = encrypt(json_data, public_key4, 2048)
+            tomcat_count = get_tomcat_count(tomcat_count)
+            user_id = global_user_id
+            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
+            return Response(output)
 
-
+'''Validates Stop loss price'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_validate_SLM_price(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -458,27 +560,37 @@ def get_validate_SLM_price(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+'''Allows you to place order for selected scrip'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_place_order(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -490,27 +602,37 @@ def get_place_order(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+'''Allows you to view the placed orders and their status'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_order_book(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -523,26 +645,36 @@ def get_order_book(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
-        data = validation_and_manipulation (jsonObject, apiName, InputDict)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+'''Allows you to modify open orders'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_modify_order(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -555,26 +687,35 @@ def get_modify_order(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
-        data = validation_and_manipulation (jsonObject, apiName, InputDict)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
-
+'''Allows you to cancel an open order'''
 @api_view([readProperty('METHOD_TYPE')])
 def get_cancel_order(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -586,27 +727,36 @@ def get_cancel_order(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
-
+'''Allows you to view the order history for the Order.'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_order_history(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -618,27 +768,36 @@ def get_order_history(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
-
+'''Allows you to view trade details'''
 @api_view([readProperty('METHOD_TYPE')])
 def get_trade_book(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -650,27 +809,36 @@ def get_trade_book(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
-
+'''This Allows user to view the holdings'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_holding(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -682,27 +850,37 @@ def get_holding(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+'''Allows you to view segment w ise RMS limits'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_limits(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -714,27 +892,37 @@ def get_limits(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+'''Provides you w ith user details'''
 @api_view([readProperty('METHOD_TYPE')])
 def get_user_profile(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -746,27 +934,37 @@ def get_user_profile(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+'''Provides you with account details'''
 @api_view([readProperty('METHOD_TYPE')])
 def get_account_info(request):
     if request.method ==readProperty ('METHOD_TYPE'):
@@ -778,27 +976,36 @@ def get_account_info(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
-
+'''Loads open order to set alerts based on trade.'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_open_orders(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -810,91 +1017,122 @@ def get_open_orders(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+
+'''List of End of the Day holdings for clients'''
 @api_view([readProperty('METHOD_TYPE')])
 def get_bo_holdings(request):
     if request.method ==readProperty ('METHOD_TYPE'):
-        url = ApiHomeDict.get(readProperty("GET_PRE_AUTHENTICATION_KEY"))[0].url
-        apiName = readProperty ("GET_PRE_AUTHENTICATION_KEY")
+        url = ApiHomeDict.get(readProperty("BO_HOLDINGS"))[0].url
+        apiName = readProperty ("BO_HOLDINGS")
         authorization = request.META.get('HTTP_AUTHORIZATION')
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+'''List of End of the day underlying Trades for holdings for the clients'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_bo_Ul_Trades(request):
     if request.method == readProperty ('METHOD_TYPE'):
-        url = ApiHomeDict.get(readProperty("GET_PRE_AUTHENTICATION_KEY"))[0].url
-        apiName = readProperty ("GET_PRE_AUTHENTICATION_KEY")
+        url = ApiHomeDict.get(readProperty("BO_UI_TRADES"))[0].url
+        apiName = readProperty ("BO_UI_TRADES")
         authorization = request.META.get('HTTP_AUTHORIZATION')
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
 
 
+'''Allows you to logout from the application'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_logout(request):
     if request.method == readProperty ('METHOD_TYPE'):
@@ -906,34 +1144,41 @@ def get_logout(request):
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
-        jsonObject = checkJson (content)
-        request_id = investak_request_audit (global_user_id, jsonObject)
+        jsonObject = content
+        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+        data = dataArray[0]
+        BodyIn = dataArray[1]
+        if 'stat' in data:
+            api_response_audit (request_id, data, apiName)
+            return Response (data)
+        if BodyIn == True:
+            jsonObject = json.loads (content)
         data = validation_and_manipulation (jsonObject, apiName, InputDict)
         print 'data ', data
         if 'stat' in data:
-            api_response_audit (request_id, data)
+            api_response_audit (request_id, data,apiName)
             return Response (data)
         else:
             print 'after validate '
+            api_request_audit (request_id, data, apiName)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             jData = encrypt(json_data, public_key4, 2048)
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = global_user_id
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
-            tso_response_audit (request_id, output)
-            # data = validation_and_manipulation (output, apiName, SuccessDict)  #manipulation logic and call api_response_audit
-            api_response_audit (request_id, output)
+            dictionary = tso_response_audit (request_id, output,apiName)
+            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, output,apiName)
             return Response(output)
-
-
 
 
 
 def validation_and_manipulation(jsonObject,apiName,Dict):
     data={}
 
-    data = validation_CheckInput (jsonObject, apiName, ApiHomeDict)
+    #data = validation_CheckInput(jsonObject, apiName,Dict)
     if not data:
         data = validation_Parameter (jsonObject, apiName, Dict)
     if not data:
@@ -990,8 +1235,28 @@ def defaultValidation(default,Paramvalue):
 
 def validation_CheckInput(jsonObject,apiName,Dict):
     data = {}
-    if (Dict == InputDict):
-        Param = CheckInputBody (jsonObject, apiName, Dict)
+    BodyIn=True
+    print 'validation_CheckInput'
+    if (Dict == ApiHomeDict):
+        print 'validation_CheckInput'
+        Param = CheckInputBody(jsonObject, apiName, ApiHomeDict)
+        checkParam = Param[0]
+        print checkParam
+        errorParam = Param[1]
+        print errorParam
+        stat = Param[2]
+        print stat
+        BodyIn = Param[3]
+        print 'BodyIn',BodyIn
+        if (checkParam == False):
+            data = sendErrorRequesterror (errorParam, stat)
+    return  data,BodyIn
+
+
+def validation_Parameter(jsonObject,apiName,Dict):
+    data = {}
+    if jsonObject:
+        Param = CheckAllParameter (jsonObject, apiName, Dict)
         checkParam = Param[0]
         print checkParam
         errorParam = Param[1]
@@ -1003,25 +1268,10 @@ def validation_CheckInput(jsonObject,apiName,Dict):
     return  data
 
 
-def validation_Parameter(jsonObject,apiName,InputDict):
+def validation_All(jsonObject,apiName,Dict):
     data = {}
     if jsonObject:
-        Param = CheckAllParameter (jsonObject, apiName, InputDict)
-        checkParam = Param[0]
-        print checkParam
-        errorParam = Param[1]
-        print errorParam
-        stat = Param[2]
-        print stat
-        if (checkParam == False):
-            data = sendErrorRequesterror (errorParam, stat)
-    return  data
-
-
-def validation_All(jsonObject,apiName,InputDict):
-    data = {}
-    if jsonObject:
-        dataType = checkAll (jsonObject, apiName, InputDict)
+        dataType = checkAll (jsonObject, apiName, Dict)
         checkType = dataType[0]
         errorDataType = dataType[1]
         stat = dataType[2]
@@ -1056,7 +1306,7 @@ def checkAll(content,ApiName,dict):
             optional= dict.get(ApiName).get(param)[0].optional
         errorList=dataTypeValidation(dataType,value,param,dict,validValues)  #see test
         errorListAll.extend (errorList)
-        errorList = ValidValuesValidation (validValues, value, param) #see
+        errorList = ValidValuesValidation (validValues, value, param,dataType) #see
         errorListAll.extend (errorList)
         if not dict == FailureDict and not dict==JsonDict:
             errorList = optionalValidation (optional, value, param)
@@ -1070,26 +1320,29 @@ def checkAll(content,ApiName,dict):
 
 
 
-def ValidValuesValidation(validValues,Paramvalue,param):
+def ValidValuesValidation(validValues,Paramvalue,param,dataType):
     errorList = []
     errorMsg=''
-    if isBlank(validValues):
-        pass
-    else:
-        check=1
-        words = validValues.split (',')
-        for word in words:
-            print 'word ',word
-            if (Paramvalue == word):
-                print 'yes'
-                check = 0
-        print 'check ',check
-        if isNotBlank(Paramvalue) and check==0:
+    if not (dataType == readProperty('JSON')):
+
+        if isBlank(validValues):
             pass
         else:
-            errorMsg=param+" "+readProperty('104')+" "+validValues
-            print errorMsg
-
+            check=1
+            words = validValues.split (',')
+            for word in words:
+                print 'word ',word
+                print 'Paramvalue ',Paramvalue
+                if (Paramvalue == word):
+                    print 'yes'
+                    check = 0
+            print 'check ',check
+            if isNotBlank(Paramvalue) and check==0:
+                pass
+            else:
+                errorMsg=param+" "+readProperty('104')+" "+validValues
+                print errorMsg
+    print 'errorList validVal ',errorList
     if errorMsg:
         errorList.append (errorMsg)
     return errorList
@@ -1101,9 +1354,11 @@ def optionalValidation(optional, Paramvalue, param):
     if isBlank(optional):
         pass
     elif(optional == readProperty('YES')):
-        if isBlank(Paramvalue):
-             errorMsg = param + " " + readProperty ('105')
-             print errorMsg
+        if isBlank(Paramvalue) :
+            if Paramvalue is not None:
+                print("param ",param,"-Paramvalue ",Paramvalue)
+                errorMsg = param + " " + readProperty ('105')
+                print errorMsg
 
     if errorMsg:
         errorList.append (errorMsg)
@@ -1181,12 +1436,17 @@ def dataTypeValidation(dataType,Paramvalue,param,dict,validValues):
         print 'param Value ',Paramvalue
         print 'validValues ',validValues
         #data = validation_and_manipulation (jsonObject, apiName, InputDict)
-        data=validation_and_manipulation(Paramvalue, validValues, JsonDict)
-        if readProperty('STATUS') in data:
-            List = data.get (readProperty ('ERROR_MSG'))
-            for errorMsg in List:
-                errorList.append (errorMsg)
-
+        if type (Paramvalue) is list:
+            Paramvalue = {k: '' for k in Paramvalue}
+            print 'ParamValueDict',Paramvalue
+            data=validation_and_manipulation(Paramvalue, validValues, JsonDict)
+            print 'JSON data ',data
+            if readProperty('STATUS') in data:
+                List = data.get (readProperty ('ERROR_MSG'))
+                for errorMsg in List:
+                    errorList.append (errorMsg)
+        else:
+            print 'not list',Paramvalue
     # SSBOETOD need write
 
     if errorMsg:
@@ -1213,7 +1473,7 @@ def validateDate(date_text):
 
 def CheckAllParameter(content,ApiName,dict):
     check=True
-    #print dict.get(ApiName).get('jData')[0].description
+    #print dict.get(ApiName).get(ApiName)[0].parameter
     errorList=[]
     expectList=[]
     expectMsg=''
@@ -1226,14 +1486,16 @@ def CheckAllParameter(content,ApiName,dict):
                     expectList.append(b)
     expectLen=len (expectList)
     contentLen=len (content)
+    print 'expectList',expectList
+    print 'content ',content
     for param, v in content.items():
-
+        print 'param',param
         if (param in expectList):
             pass
         else:
             errorList.append(readProperty('101') + " " + param)
             check = False
-    if(expectLen!=contentLen):
+    if(expectLen!=contentLen) and not JsonDict:
         expectMsg="Expected "+str(expectLen)+" parameter available "+str(contentLen)+" parameter"
         errorList.append(expectMsg)
         check = False
@@ -1244,41 +1506,55 @@ def CheckAllParameter(content,ApiName,dict):
     return check,errorList,stat
 
 def CheckInputBody(content,ApiName,dict):
+    print 'CheckInputBody'
     check=True
     print dict.get(ApiName)[0].inputApi
     errorList=[]
     expectMsg=''
     stat = ''
-    checkBody=dict.get (ApiName)[0].inputApi
+    BodyIn=True
+    checkBody=dict.get(ApiName)[0].inputApi
     if checkBody==readProperty('CAPITAL_YES'):
         if content:
-            pass
+            key=''
+            print key
+            key=checkJson(content)
+            print 'key ',key
+            if key=='0':
+                errorList.append (readProperty('109'))
         else:
-            print 'No'
+
             errorList.append(readProperty('106'))
-            check = False
+
     else:
+        BodyIn = False
         if content:
-            print 'No'
+            print 'content',content
             errorList.append (readProperty ('107'))
-            check = False
-        else:
-            pass
 
     if errorList:
         stat = readProperty('NOT_OK')
+        check = False
     print errorList
     print 'stat ',stat
-    return check,errorList,stat
+    return check,errorList,stat,BodyIn
 
 
-def investak_request_audit(userId,request):
+def investak_request_audit(userId,request,apiName):
     request_id=''
     dateNow = datetime.now ()
-
-    Auditobj=Audit(user_id=userId, investak_request=request,investak_request_time_stamp=dateNow)
-    Auditobj.save()
-    request_id=Auditobj.request_id
+    logging = ApiHomeDict.get(apiName)[0].logging
+    print 'logging',logging
+    if (logging == readProperty ('CAPITAL_YES') and readProperty ('INVESTAK_API_AUDIT_ENABLE') == readProperty ('CAPITAL_YES')):
+        Auditobj=Audit(user_id=userId, investak_request=request,investak_request_time_stamp=dateNow)
+        Auditobj.save()
+        request_id=Auditobj.request_id
+    else:
+        Auditobj = Audit (user_id=userId, investak_request=request, investak_request_time_stamp=dateNow)
+        Auditobj.save ()
+        request_id = Auditobj.request_id
+        Auditobj = Audit (request_id=request_id)
+        Auditobj.delete()
     print 'investak_request_audit ',request
     print 'request_id ',request_id
 
@@ -1288,16 +1564,17 @@ def investak_request_audit(userId,request):
 
     return request_id
 
-def api_request_audit(request_id,request):
+def api_request_audit(request_id,request,apiName):
     dateNow = datetime.now ()
-
-    obj, created = Audit.objects.update_or_create (
-        request_id=request_id,
-        defaults={readProperty('API_REQUEST'): request,readProperty('API_REQUEST_TIME_STAMP'):dateNow},
-    )
+    logging=ApiHomeDict.get(apiName)[0].logging
+    if(logging==readProperty('CAPITAL_YES') and readProperty('API_TSO_AUDIT_ENABLE')==readProperty('CAPITAL_YES')):
+        obj, created = Audit.objects.update_or_create (
+            request_id=request_id,
+            defaults={readProperty('API_REQUEST'): request,readProperty('API_REQUEST_TIME_STAMP'):dateNow},
+        )
     print 'api_request_audit ',request
 
-def api_response_audit(request_id,request):
+def api_response_audit(request_id,request,apiName):
     dateNow = datetime.now ()
     stat= request.get (readProperty('STATUS'))
     if stat== readProperty ('OK'):
@@ -1305,15 +1582,17 @@ def api_response_audit(request_id,request):
     else:
         api_status = readProperty ('FAILURE')
     print  'api_status ', api_status
-    obj, created = Audit.objects.update_or_create (
-        request_id=request_id,
-        defaults={readProperty('API_RESPONSE'): request,readProperty('API_RESPONSE_TIME_STAMP'):dateNow,readProperty('API_STATUS'):api_status},
-    )
+    logging = ApiHomeDict.get(apiName)[0].logging
+    if (logging == readProperty ('CAPITAL_YES') and readProperty ('INVESTAK_API_AUDIT_ENABLE') == readProperty ('CAPITAL_YES')):
+        obj, created = Audit.objects.update_or_create (
+            request_id=request_id,
+            defaults={readProperty('API_RESPONSE'): request,readProperty('API_RESPONSE_TIME_STAMP'):dateNow,readProperty('API_STATUS'):api_status},
+        )
     print 'api_response_audit ',request
 
-def tso_response_audit(request_id,request):
+def tso_response_audit(request_id,request,apiName):
     dateNow = datetime.now ()
-    stat = request.get (readProperty('STATUS'))
+    stat = request.get(readProperty('STATUS'))
     if stat == readProperty ('OK'):
         tso_status = readProperty('SUCCESS')
         dictionary=SuccessDict
@@ -1321,10 +1600,12 @@ def tso_response_audit(request_id,request):
         tso_status = readProperty('FAILURE')
         dictionary=FailureDict
     print  'tso_status ',tso_status
-    obj, created = Audit.objects.update_or_create (
-        request_id=request_id,
-        defaults={readProperty('TSO_RESPONSE'): request,readProperty('TSO_RESPONSE_TIME_STAMP'):dateNow,readProperty('TSO_STATUS'):tso_status},
-    )
+    logging = ApiHomeDict.get(apiName)[0].logging
+    if (logging == readProperty ('CAPITAL_YES') and readProperty ('API_TSO_AUDIT_ENABLE') == readProperty ('CAPITAL_YES')):
+        obj, created = Audit.objects.update_or_create (
+            request_id=request_id,
+            defaults={readProperty('TSO_RESPONSE'): request,readProperty('TSO_RESPONSE_TIME_STAMP'):dateNow,readProperty('TSO_STATUS'):tso_status},
+        )
     print 'tso_response_audit ',request
     return dictionary
 
@@ -1498,7 +1779,7 @@ def transformation(data, transform_value):
 
 
 def isBlank(myString):
-    if myString and myString.strip():
+    if myString and (part.strip() for part in myString):
         # myString is not None AND myString is not empty or blank
         return False
     # myString is None OR myString is empty or blank
@@ -1506,18 +1787,29 @@ def isBlank(myString):
 
 
 def isNotBlank(myString):
-    if myString and myString.strip():
+    if myString and (part.strip() for part in myString):
         # myString is not None AND myString is not empty or blank
         return True
     # myString is None OR myString is empty or blank
     return False
 
+
 def checkJson(text):
+    errorList=[]
+    #abc={}
+    key = '1'
+    print 'checkJson1'
     try:
-        return json.loads(text)
+        print 'checkJson2'
+        print text
+        abc = json.loads(text)
+        print 'checkJson3',abc
+        return key
     except ValueError as e:
         print('invalid json: %s' % e)
-        return text # or: raise
+        key='0'
+        return key
+
 
 def PasswordHash(jsonObject):
     data={}
