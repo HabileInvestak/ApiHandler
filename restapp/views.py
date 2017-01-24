@@ -1227,7 +1227,7 @@ def defaultValidation(default,Paramvalue):
 
     if isBlank(default):
         pass
-    else:
+    elif(isBlank(Paramvalue)):
         Paramvalue=default
 
     return Paramvalue
@@ -1304,13 +1304,15 @@ def checkAll(content,ApiName,dict):
         validValues= dict.get(ApiName).get(param)[0].validValues
         if not dict==FailureDict and not dict==JsonDict:
             optional= dict.get(ApiName).get(param)[0].optional
-        errorList=dataTypeValidation(dataType,value,param,dict,validValues)  #see test
-        errorListAll.extend (errorList)
-        errorList = ValidValuesValidation (validValues, value, param,dataType) #see
-        errorListAll.extend (errorList)
-        if not dict == FailureDict and not dict==JsonDict:
             errorList = optionalValidation (optional, value, param)
-        errorListAll.extend(errorList)
+            errorListAll.extend (errorList)
+        if not errorList:
+            errorList=dataTypeValidation(dataType,value,param,dict,validValues)
+            errorListAll.extend (errorList)
+        if not errorList:
+            errorList = ValidValuesValidation (validValues, value, param,dataType)
+            errorListAll.extend (errorList)
+
 
     if errorListAll:
         check = False
@@ -1320,7 +1322,7 @@ def checkAll(content,ApiName,dict):
 
 
 
-def ValidValuesValidation(validValues,Paramvalue,param,dataType):
+def ValidValuesValidation(validValues,paramValue,param,dataType):
     errorList = []
     errorMsg=''
     if not (dataType == readProperty('JSON')):
@@ -1332,21 +1334,32 @@ def ValidValuesValidation(validValues,Paramvalue,param,dataType):
             words = validValues.split (',')
             for word in words:
                 print 'word ',word
-                print 'Paramvalue ',Paramvalue
-                if (Paramvalue == word):
+                print 'Paramvalue ',paramValue
+                if (paramValue == word):
                     print 'yes'
                     check = 0
             print 'check ',check
-            if isNotBlank(Paramvalue) and check==0:
+            if isNotBlank(paramValue) and check==0:
                 pass
             else:
-                errorMsg=param+" "+readProperty('104')+" "+validValues
+                arrayValue=[param,validValues,paramValue]
+                errorMsg=errorMsgCreate(readProperty('104'),arrayValue)
                 print errorMsg
     print 'errorList validVal ',errorList
     if errorMsg:
         errorList.append (errorMsg)
     return errorList
 
+def errorMsgCreate(string,arrayValue):
+    print 'string',string
+    for index, item in enumerate (arrayValue):
+        index = str(index)
+        if type(item)==int:
+            item = str (item)
+        newstr = string.replace ('['+index+']',item)
+        string = newstr
+        print string
+    return  string
 
 def optionalValidation(optional, Paramvalue, param):
     errorList = []
@@ -1355,9 +1368,13 @@ def optionalValidation(optional, Paramvalue, param):
         pass
     elif(optional == readProperty('YES')):
         if isBlank(Paramvalue) :
+            print '1'
+            print '1'
             if Paramvalue is not None:
+                print '2'
                 print("param ",param,"-Paramvalue ",Paramvalue)
-                errorMsg = param + " " + readProperty ('105')
+                arrayValue = [param]
+                errorMsg = errorMsgCreate (readProperty ('105'), arrayValue)
                 print errorMsg
 
     if errorMsg:
@@ -1374,13 +1391,15 @@ def dataTypeValidation(dataType,Paramvalue,param,dict,validValues):
         if (Valuelen == 1):
             pass
         else:
-            errorMsg=param+" "+readProperty('102')+" "+dataType
+            arrayValue = [param, dataType]
+            errorMsg = errorMsgCreate (readProperty ('102'), arrayValue)
             print errorMsg
     elif(dataType == readProperty('NUMBER')):
         if(Paramvalue.isdigit()):
             pass
         else:
-            errorMsg = param+" "+readProperty('102') + " " + dataType
+            arrayValue = [param, dataType]
+            errorMsg = errorMsgCreate (readProperty ('102'), arrayValue)
             print errorMsg
     elif (dataType == readProperty('DECIMAL')):
         '''if (value.isdecimal()):
@@ -1394,10 +1413,12 @@ def dataTypeValidation(dataType,Paramvalue,param,dict,validValues):
             if (isinstance (json.loads (Paramvalue), (float))):
                 pass
             else:
-                errorMsg = param + " " + readProperty('102') + " " + dataType
+                arrayValue = [param, dataType]
+                errorMsg = errorMsgCreate (readProperty ('102'), arrayValue)
                 print 'hi1',errorMsg
         else:
-            errorMsg = param + " " + readProperty('102') + " " + dataType
+            arrayValue = [param, dataType]
+            errorMsg = errorMsgCreate (readProperty ('102'), arrayValue)
             print 'hi2',errorMsg
 
     elif (dataType == readProperty('LIST')):
@@ -1406,7 +1427,8 @@ def dataTypeValidation(dataType,Paramvalue,param,dict,validValues):
         if type(Paramvalue) is list:
             pass
         else:
-            errorMsg = param + " " +readProperty('102') + " " + dataType
+            arrayValue = [param, dataType]
+            errorMsg = errorMsgCreate (readProperty ('102'), arrayValue)
             print errorMsg
 
     elif (dataType == readProperty('DATE_TIME') and dict==InputDict):
@@ -1418,7 +1440,8 @@ def dataTypeValidation(dataType,Paramvalue,param,dict,validValues):
         if Date:
             pass
         else:
-            errorMsg = param + " " +readProperty('103') + " " + dataType
+            arrayValue = [param,dataType]
+            errorMsg = errorMsgCreate (readProperty ('103'), arrayValue)
             print errorMsg
 
     elif (dataType == readProperty ('URL')):
@@ -1427,7 +1450,8 @@ def dataTypeValidation(dataType,Paramvalue,param,dict,validValues):
             print 'correct url'
             pass
         else:
-            errorMsg = param + " " + readProperty ('102') + " " + dataType
+            arrayValue = [param, dataType]
+            errorMsg = errorMsgCreate (readProperty ('102'), arrayValue)
             print errorMsg
 
     elif (dataType == readProperty ('JSON')):
@@ -1486,21 +1510,26 @@ def CheckAllParameter(content,ApiName,dict):
                     expectList.append(b)
     expectLen=len (expectList)
     contentLen=len (content)
+    print 'expectLen',expectLen
+    print 'contentLen',contentLen
+    if (expectLen != contentLen) and not dict==JsonDict:
+        arrayValue = [expectLen,contentLen]
+        expectMsg = errorMsgCreate (readProperty ('109'), arrayValue)
+        errorList.append (expectMsg)
     print 'expectList',expectList
     print 'content ',content
-    for param, v in content.items():
-        print 'param',param
-        if (param in expectList):
-            pass
-        else:
-            errorList.append(readProperty('101') + " " + param)
-            check = False
-    if(expectLen!=contentLen) and not JsonDict:
-        expectMsg="Expected "+str(expectLen)+" parameter available "+str(contentLen)+" parameter"
-        errorList.append(expectMsg)
-        check = False
+    if not errorList:
+        for param, v in content.items():
+            print 'param',param
+            if (param in expectList):
+                pass
+            else:
+                arrayValue = [param]
+                errorMsg = errorMsgCreate (readProperty ('101'), arrayValue)
+                errorList.append(errorMsg)
     if errorList:
         stat = readProperty('NOT_OK')
+        check = False
     print errorList
     print 'stat ',stat
     return check,errorList,stat
@@ -1521,16 +1550,21 @@ def CheckInputBody(content,ApiName,dict):
             key=checkJson(content)
             print 'key ',key
             if key=='0':
-                errorList.append (readProperty('109'))
+                arrayValue = []
+                errorMsg = errorMsgCreate (readProperty ('108'), arrayValue)
+                errorList.append (errorMsg)
         else:
-
-            errorList.append(readProperty('106'))
+            arrayValue = []
+            errorMsg = errorMsgCreate (readProperty ('106'), arrayValue)
+            errorList.append(errorMsg)
 
     else:
         BodyIn = False
         if content:
             print 'content',content
-            errorList.append (readProperty ('107'))
+            arrayValue = []
+            errorMsg = errorMsgCreate (readProperty ('107'), arrayValue)
+            errorList.append (errorMsg)
 
     if errorList:
         stat = readProperty('NOT_OK')
