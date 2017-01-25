@@ -32,6 +32,7 @@ prop = Property ()
 prop_obj = prop.load_property_files('D:\\InvestAK\\26-12-2016\\investak.properties')  #hari
 #prop_obj = prop.load_property_files ('E:\\Investak\\investak\\investak.properties')  # ranjith
 
+''' This method will read the configuration values from property file'''
 def readProperty(name):
     data=prop_obj.get(name)
     return data
@@ -43,8 +44,7 @@ def get_initial_token(request):
         content = request.body
         url = ApiHomeDict.get(readProperty('GET_INITIAL_KEY'))[0].url
         apiName = readProperty ("GET_INITIAL_KEY")
-        print 'url',url
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         jsonObject = content
         request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
@@ -103,7 +103,7 @@ def get_login_2fa(request):
         url = ApiHomeDict.get(readProperty("LOGIN_2FA"))[0].url
         apiName = readProperty ("LOGIN_2FA")
         print 'url',url
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization=authorization.split("-")
         public_key3_pem = b64_decode(authorization[1].replace("\n",""))
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
@@ -144,7 +144,7 @@ def get_login(request):
     if request.method == readProperty('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("GET_PRE_AUTHENTICATION_KEY"))[0].url
         apiName = readProperty ("GET_PRE_AUTHENTICATION_KEY")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key3_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -186,7 +186,7 @@ def get_normal_login(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("GET_PRE_AUTHENTICATION_KEY"))[0].url
         apiName = readProperty ("GET_PRE_AUTHENTICATION_KEY")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization=authorization.split("-")
         private_key2_pem=b64_decode(authorization[0].replace("\n",""))
         public_key3_pem = b64_decode(authorization[1].replace("\n",""))
@@ -233,7 +233,7 @@ def get_default_login(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("DEFAULT_LOGIN"))[0].url
         apiName = readProperty ("DEFAULT_LOGIN")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization=authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n",""))
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
@@ -274,7 +274,7 @@ def get_valid_pwd(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("VALID_PASSWORD"))[0].url
         apiName = readProperty("VALID_PASSWORD")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization=authorization.split("-")
         public_key3_pem = b64_decode(authorization[1].replace("\n",""))
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
@@ -318,7 +318,7 @@ def get_valid_ans(request):
     if request.method == readProperty('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("VALID_ANSWER"))[0].url
         apiName = readProperty ("VALID_ANSWER")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization=authorization.split("-")
         private_key2_pem=b64_decode(authorization[0].replace("\n",""))
         public_key3_pem = b64_decode(authorization[1].replace("\n",""))
@@ -374,7 +374,7 @@ def get_account_info(request):
     if request.method == readProperty('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("ACCOUNT_INFO"))[0].url
         apiName = readProperty ("ACCOUNT_INFO")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization=authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n",""))
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
@@ -420,7 +420,7 @@ def get_load_retention_type(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("LOAD_RETENSION_TYPE"))[0].url
         apiName = readProperty ("LOAD_RETENSION_TYPE")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization=authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n",""))
         tomcat_count= b64_decode(authorization[2].replace("\n",""))
@@ -462,7 +462,7 @@ def get_check_crkt_price_range(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("CHECK_CORRECT_PRICE_RANGE"))[0].url
         apiName = readProperty ("CHECK_CORRECT_PRICE_RANGE")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -504,7 +504,7 @@ def get_validate_GTD(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("VALIDATE_GTD"))[0].url
         apiName = readProperty ("VALIDATE_GTD")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -545,7 +545,7 @@ def get_validate_SLM_price(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("VALIDATE_SLM_PRICE"))[0].url
         apiName = readProperty ("VALIDATE_SLM_PRICE")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -587,7 +587,7 @@ def get_place_order(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("PLACE_ORDER"))[0].url
         apiName = readProperty ("PLACE_ORDER")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -629,7 +629,7 @@ def get_order_book(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("ORDER_BOOK"))[0].url
         apiName = readProperty ("ORDER_BOOK")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -671,7 +671,7 @@ def get_modify_order(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("MODIFY_ORDER"))[0].url
         apiName = readProperty ("MODIFY_ORDER")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -712,7 +712,7 @@ def get_cancel_order(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("CANCEL_ORDER"))[0].url
         apiName = readProperty ("CANCEL_ORDER")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -753,7 +753,7 @@ def get_order_history(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("ORDER_HISTORY"))[0].url
         apiName = readProperty ("ORDER_HISTORY")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -794,7 +794,7 @@ def get_trade_book(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("TRADE_BOOK"))[0].url
         apiName = readProperty ("TRADE_BOOK")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -835,7 +835,7 @@ def get_holding(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("HOLDING"))[0].url
         apiName = readProperty ("HOLDING")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -877,7 +877,7 @@ def get_limits(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("LIMITS"))[0].url
         apiName = readProperty ("LIMITS")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -919,7 +919,7 @@ def get_user_profile(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("USER_PROFILE"))[0].url
         apiName = readProperty ("USER_PROFILE")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -961,7 +961,7 @@ def get_account_info(request):
     if request.method ==readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("ACCOUNT_INFO"))[0].url
         apiName = readProperty ("ACCOUNT_INFO")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -1002,7 +1002,7 @@ def get_open_orders(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("OPEN_ORDERS"))[0].url
         apiName = readProperty ("OPEN_ORDERS")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -1045,7 +1045,7 @@ def get_bo_holdings(request):
     if request.method ==readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("BO_HOLDINGS"))[0].url
         apiName = readProperty ("BO_HOLDINGS")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -1087,7 +1087,7 @@ def get_bo_Ul_Trades(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("BO_UI_TRADES"))[0].url
         apiName = readProperty ("BO_UI_TRADES")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
@@ -1129,7 +1129,7 @@ def get_logout(request):
     if request.method == readProperty ('METHOD_TYPE'):
         url = ApiHomeDict.get(readProperty("LOG_OUT"))[0].url
         apiName=readProperty("LOG_OUT")
-        authorization = request.META.get('HTTP_AUTHORIZATION')
+        authorization = request.META.get(readProperty('HTTP_AUTHORIZATION'))
         authorization = authorization.split("-")
         public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
         tomcat_count = b64_decode(authorization[2].replace("\n", ""))
