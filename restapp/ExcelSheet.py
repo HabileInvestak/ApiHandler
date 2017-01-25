@@ -5,7 +5,7 @@ import json, ast
 from ExcelReadClass import *
 
 
-wb = open_workbook ("D:\InvestAK\26-12-2016\\Habile_Investak_API_Dictionary.xlsx") #hari
+wb = open_workbook ("D:\\InvestAK\\26-12-2016\\Habile_Investak_API_Dictionary.xlsx") #hari
 #wb = open_workbook ("E:\\Investak\\investak\\Habile_Investak_API_Dictionary_1.1_20170119.xlsx") #ranjith
 
 # API
