@@ -46,7 +46,7 @@ def get_initial_token(request):
         print 'url',url
         authorization = request.META.get('HTTP_AUTHORIZATION')
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -73,7 +73,7 @@ def get_initial_token(request):
         public_key1 = import_key(public_key1_pem)
         jData = encrypt(public_key2_pem, public_key1, readProperty ('KEY_SIZE'))
         jKey = get_jkey(public_key1_pem)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
 
         url = ApiHomeDict.get(readProperty('GET_PRE_AUTHENTICATION_KEY'))[0].url
         content=readProperty('YES')
@@ -110,7 +110,7 @@ def get_login_2fa(request):
         jKey = get_jkey(public_key3_pem)
         userJSON=content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data=dataArray[0]
         BodyIn=dataArray[1]
@@ -130,7 +130,7 @@ def get_login_2fa(request):
         public_key3=import_key(public_key3_pem)
         jData = encrypt(userJSON,public_key3, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
-        user_id=global_user_id
+        user_id=readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -151,7 +151,7 @@ def get_login(request):
         jKey = get_jkey(public_key3_pem)
         userJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -172,7 +172,7 @@ def get_login(request):
         public_key3 = import_key(public_key3_pem)
         jData = encrypt(json_data, public_key3, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -194,7 +194,7 @@ def get_normal_login(request):
         jKey = get_jkey(public_key3_pem)
         userJSON=content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -215,7 +215,7 @@ def get_normal_login(request):
         public_key3=import_key(public_key3_pem)
         jData = encrypt(json_data,public_key3, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
-        user_id=global_user_id
+        user_id=readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -240,7 +240,7 @@ def get_default_login(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON=content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -261,7 +261,7 @@ def get_default_login(request):
         public_key4=import_key(public_key4_pem)
         jData = encrypt(json_data,public_key4, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
-        user_id=global_user_id
+        user_id=readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -281,7 +281,7 @@ def get_valid_pwd(request):
         jKey = get_jkey(public_key3_pem)
         userJSON=content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -304,7 +304,7 @@ def get_valid_pwd(request):
         public_key3=import_key(public_key3_pem)
         jData = encrypt(json_data,public_key3, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
-        user_id=global_user_id
+        user_id=readProperty('global_user_id')
         #output=''
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary=tso_response_audit (request_id, output,apiName)
@@ -326,7 +326,7 @@ def get_valid_ans(request):
         jKey = get_jkey(public_key3_pem)
         userJSON=content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -347,7 +347,7 @@ def get_valid_ans(request):
         public_key3=import_key(public_key3_pem)
         jData = encrypt(json_data,public_key3, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
-        user_id=global_user_id
+        user_id=readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         stat = output.get (readProperty ('STATUS'))
         emsg = output.get (readProperty ('ERROR_MSG'))
@@ -381,7 +381,7 @@ def get_account_info(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON=content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -402,7 +402,7 @@ def get_account_info(request):
         public_key4=import_key(public_key4_pem)
         jData = encrypt(json_data,public_key4, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
-        user_id=global_user_id
+        user_id=readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -427,7 +427,7 @@ def get_load_retention_type(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON=content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -448,7 +448,7 @@ def get_load_retention_type(request):
         public_key4=import_key(public_key4_pem)
         jData = encrypt(json_data,public_key4, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
-        user_id=global_user_id
+        user_id=readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -469,7 +469,7 @@ def get_check_crkt_price_range(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -490,7 +490,7 @@ def get_check_crkt_price_range(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -511,7 +511,7 @@ def get_validate_GTD(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -532,7 +532,7 @@ def get_validate_GTD(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -552,7 +552,7 @@ def get_validate_SLM_price(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -573,7 +573,7 @@ def get_validate_SLM_price(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -594,7 +594,7 @@ def get_place_order(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -615,7 +615,7 @@ def get_place_order(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -637,7 +637,7 @@ def get_order_book(request):
         requestJSON = content = request.body
         jsonObject = checkJson (content)
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -657,7 +657,7 @@ def get_order_book(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -679,7 +679,7 @@ def get_modify_order(request):
         requestJSON = content = request.body
         jsonObject = checkJson (content)
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -699,7 +699,7 @@ def get_modify_order(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -719,7 +719,7 @@ def get_cancel_order(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -740,7 +740,7 @@ def get_cancel_order(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -760,7 +760,7 @@ def get_order_history(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -781,7 +781,7 @@ def get_order_history(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -801,7 +801,7 @@ def get_trade_book(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -822,7 +822,7 @@ def get_trade_book(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -842,7 +842,7 @@ def get_holding(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -863,7 +863,7 @@ def get_holding(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -884,7 +884,7 @@ def get_limits(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -905,7 +905,7 @@ def get_limits(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -926,7 +926,7 @@ def get_user_profile(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -947,7 +947,7 @@ def get_user_profile(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -968,7 +968,7 @@ def get_account_info(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -989,7 +989,7 @@ def get_account_info(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1009,7 +1009,7 @@ def get_open_orders(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -1030,7 +1030,7 @@ def get_open_orders(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1052,7 +1052,7 @@ def get_bo_holdings(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -1073,7 +1073,7 @@ def get_bo_holdings(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1094,7 +1094,7 @@ def get_bo_Ul_Trades(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -1115,7 +1115,7 @@ def get_bo_Ul_Trades(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1136,7 +1136,7 @@ def get_logout(request):
         jKey = get_jkey(public_key4_pem)
         requestJSON = content = request.body
         jsonObject = content
-        request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+        request_id = investak_request_audit (readProperty('global_user_id'), jsonObject, apiName)
         dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
         data = dataArray[0]
         BodyIn = dataArray[1]
@@ -1157,7 +1157,7 @@ def get_logout(request):
         public_key4 = import_key(public_key4_pem)
         jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
-        user_id = global_user_id
+        user_id = readProperty('global_user_id')
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
         dictionary = tso_response_audit (request_id, output,apiName)
         output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
