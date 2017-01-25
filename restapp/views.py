@@ -38,8 +38,8 @@ KEY_SIZE = 2048
 
 
 prop = Property ()
-#prop_obj = prop.load_property_files('D:\\InvestAK\\investak.properties')  #hari
-prop_obj = prop.load_property_files ('E:\\Investak\\investak\\investak.properties')  # ranjith
+prop_obj = prop.load_property_files('D:\\InvestAK\\26-12-2016\\investak.properties')  #hari
+#prop_obj = prop.load_property_files ('E:\\Investak\\investak\\investak.properties')  # ranjith
 
 def readProperty(name):
     data=prop_obj.get (name)
