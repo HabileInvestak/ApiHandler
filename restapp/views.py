@@ -35,8 +35,9 @@ prop_obj = prop.load_property_files ('E:\\Investak\\investak\\investak.propertie
 
 ''' This method will read the configuration values from property file'''
 def readProperty(name):
-        data=prop_obj.get(name)
-        return data
+    
+    data=prop_obj.get(name)
+    return data
 
 
 '''Provides you with initial Key for encryption '''
