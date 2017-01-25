@@ -28,15 +28,6 @@ FailureDict = AllList[3]
 JsonDict = AllList[4]
 ListDict = AllList[5]
 
-
-global_user_id = "UTEST3"
-private_key2_pem = ""
-tomcat_count = ""
-BYTE_BOUNDARY = 8
-BYTE_DIFFERENCE = 11
-KEY_SIZE = 2048
-
-
 prop = Property ()
 prop_obj = prop.load_property_files('D:\\InvestAK\\26-12-2016\\investak.properties')  #hari
 #prop_obj = prop.load_property_files ('E:\\Investak\\investak\\investak.properties')  # ranjith
@@ -80,7 +71,7 @@ def get_initial_token(request):
         public_key2_pem = get_public_key_pem(key_pair)
         private_key2_pem = get_private_key_pem(key_pair)
         public_key1 = import_key(public_key1_pem)
-        jData = encrypt(public_key2_pem, public_key1, 2048)
+        jData = encrypt(public_key2_pem, public_key1, readProperty ('KEY_SIZE'))
         jKey = get_jkey(public_key1_pem)
         user_id = global_user_id
 
@@ -137,7 +128,7 @@ def get_login_2fa(request):
         print 'after validate'
         api_request_audit (request_id, data, apiName)
         public_key3=import_key(public_key3_pem)
-        jData = encrypt(userJSON,public_key3, 2048)
+        jData = encrypt(userJSON,public_key3, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
         user_id=global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -179,7 +170,7 @@ def get_login(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key3 = import_key(public_key3_pem)
-        jData = encrypt(json_data, public_key3, 2048)
+        jData = encrypt(json_data, public_key3, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -222,7 +213,7 @@ def get_normal_login(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key3=import_key(public_key3_pem)
-        jData = encrypt(json_data,public_key3, 2048)
+        jData = encrypt(json_data,public_key3, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
         user_id=global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -268,7 +259,7 @@ def get_default_login(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4=import_key(public_key4_pem)
-        jData = encrypt(json_data,public_key4, 2048)
+        jData = encrypt(json_data,public_key4, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
         user_id=global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -311,7 +302,7 @@ def get_valid_pwd(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps (data)
         public_key3=import_key(public_key3_pem)
-        jData = encrypt(json_data,public_key3, 2048)
+        jData = encrypt(json_data,public_key3, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
         user_id=global_user_id
         #output=''
@@ -354,7 +345,7 @@ def get_valid_ans(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key3=import_key(public_key3_pem)
-        jData = encrypt(json_data,public_key3, 2048)
+        jData = encrypt(json_data,public_key3, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
         user_id=global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -409,7 +400,7 @@ def get_account_info(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4=import_key(public_key4_pem)
-        jData = encrypt(json_data,public_key4, 2048)
+        jData = encrypt(json_data,public_key4, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
         user_id=global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -455,7 +446,7 @@ def get_load_retention_type(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4=import_key(public_key4_pem)
-        jData = encrypt(json_data,public_key4, 2048)
+        jData = encrypt(json_data,public_key4, readProperty ('KEY_SIZE'))
         tomcat_count=get_tomcat_count(tomcat_count)
         user_id=global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -497,7 +488,7 @@ def get_check_crkt_price_range(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -539,7 +530,7 @@ def get_validate_GTD(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -580,7 +571,7 @@ def get_validate_SLM_price(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -622,7 +613,7 @@ def get_place_order(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -664,7 +655,7 @@ def get_order_book(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -706,7 +697,7 @@ def get_modify_order(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -747,7 +738,7 @@ def get_cancel_order(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -788,7 +779,7 @@ def get_order_history(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -829,7 +820,7 @@ def get_trade_book(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -870,7 +861,7 @@ def get_holding(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -912,7 +903,7 @@ def get_limits(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -954,7 +945,7 @@ def get_user_profile(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -996,7 +987,7 @@ def get_account_info(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -1037,7 +1028,7 @@ def get_open_orders(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -1080,7 +1071,7 @@ def get_bo_holdings(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -1122,7 +1113,7 @@ def get_bo_Ul_Trades(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -1164,7 +1155,7 @@ def get_logout(request):
         api_request_audit (request_id, data, apiName)
         json_data = json.dumps(data)
         public_key4 = import_key(public_key4_pem)
-        jData = encrypt(json_data, public_key4, 2048)
+        jData = encrypt(json_data, public_key4, readProperty ('KEY_SIZE'))
         tomcat_count = get_tomcat_count(tomcat_count)
         user_id = global_user_id
         output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
@@ -1690,7 +1681,7 @@ def encrypt_block(key, data, start, end):
 
 def encrypt(data, key, key_size):
     buffer = ""
-    number_of_bytes = ((key_size / BYTE_BOUNDARY) - 11)
+    number_of_bytes = ((key_size / readProperty ('BYTE_BOUNDARY')) - readProperty ('BYTE_DIFFERENCE'))
     start = 0
     end = number_of_bytes
     if (number_of_bytes > len(data)):
@@ -1752,7 +1743,7 @@ def b64_encode(data):
 
 def generate_key_pair():
     random_generator = Random.new().read
-    key = RSA.generate(2048, random_generator)
+    key = RSA.generate(readProperty ('KEY_SIZE'), random_generator)
     return key
 
 
