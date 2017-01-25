@@ -1380,7 +1380,6 @@ def get_logout(request):
 
 def validation_and_manipulation(jsonObject,apiName,Dict):
     data={}
-    print 1/0
     #data = validation_CheckInput(jsonObject, apiName,Dict)
     if not data:
         data = validation_Parameter (jsonObject, apiName, Dict)
