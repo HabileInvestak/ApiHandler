@@ -48,7 +48,6 @@ def readProperty(name):
         logger.exception(e)
         raise Exception(e)
     
-global_user_id=readProperty('global_user_id')
 
 
 '''Provides you with initial token for Login '''
@@ -64,9 +63,11 @@ def get_initial_token(request):
             print 'url',url
             authorization = request.META.get(readProperty('AUTHORIZATION'))
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            userId=''
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
+            
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
@@ -74,6 +75,7 @@ def get_initial_token(request):
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
+                userId=jsonObject.get('uid')
             data = validation_and_manipulation (jsonObject, apiName,InputDict)
             print 'data ', data
             if 'stat' in data:
@@ -81,9 +83,11 @@ def get_initial_token(request):
                 logger.info(readProperty('113'))
                 return Response(data)
             print 'after validate '
-            request_id=api_request_audit(request_id, data, apiName,global_user_id)
+            request_id=api_request_audit(request_id, data, apiName,userId)
             output = send_sequest(content, url, authorization, user_id="", tomcat_count="", jKey="", jData="")
-            d = json.loads(output)
+            print 'output',output
+            #d = json.loads(output)
+            d = output
             initial_public_key1 = d[readProperty('PUBLIC_KEY')]
             tomcat_count = d[readProperty('TOMCAT_COUNT')]
             public_key1_pem = b64_decode(initial_public_key1)
@@ -96,7 +100,7 @@ def get_initial_token(request):
             else:
                 raise Exception(readProperty('110'))    
             jKey = get_jkey(public_key1_pem)
-            user_id = global_user_id
+            user_id = userId
 
             url = ApiHomeDict.get(readProperty('GET_PRE_AUTHENTICATION_KEY'))[0].url
             content=readProperty('YES')
@@ -111,7 +115,7 @@ def get_initial_token(request):
             else:
                 raise Exception(readProperty('110'))
             print readProperty('SLASH_N')
-            initial_token = replace_text(b64_encode(private_key2_pem),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(decrypted_public_key3),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(tomcat_count),"\n","")
+            initial_token = replace_text(b64_encode(private_key2_pem),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(decrypted_public_key3),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(tomcat_count),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(userId),"\n","")
             dictionary =tso_response_audit (request_id, output,apiName)
             if stat==readProperty('OK'):
                 output = {readProperty('STATUS'):stat,readProperty('INITIAL_TOKEN'): initial_token,readProperty('TOMCAT_COUNT'):tomcat_count}
@@ -144,10 +148,12 @@ def get_login_2fa(request):
             authorization=authorization.split("-")
             public_key3_pem = b64_decode(authorization[1].replace("\n",""))
             tomcat_count= b64_decode(authorization[2].replace("\n",""))
+            userId= b64_decode(authorization[3].replace("\n",""))
+            print 'userId',userId
             jKey = get_jkey(public_key3_pem)
             userJSON=content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data=dataArray[0]
             BodyIn=dataArray[1]
@@ -165,14 +171,14 @@ def get_login_2fa(request):
                 return Response (data)
 
             print 'after validate'
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             public_key3=import_key(public_key3_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(userJSON,public_key3, 2048)
             else:
                 raise Exception(readProperty('110'))    
             tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
+            user_id=userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -202,10 +208,11 @@ def get_login(request):
             authorization = authorization.split("-")
             public_key3_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key3_pem)
             userJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -223,7 +230,7 @@ def get_login(request):
                 return Response (data)
 
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key3 = import_key(public_key3_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -231,7 +238,7 @@ def get_login(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -262,10 +269,11 @@ def get_normal_login(request):
             private_key2_pem=b64_decode(authorization[0].replace("\n",""))
             public_key3_pem = b64_decode(authorization[1].replace("\n",""))
             tomcat_count= b64_decode(authorization[2].replace("\n",""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key3_pem)
             userJSON=content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -283,7 +291,7 @@ def get_normal_login(request):
                 return Response (data)
     
             print 'after validate '
-            request_id = api_request_audit (request_id, data, apiName,global_user_id)
+            request_id = api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key3=import_key(public_key3_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -291,7 +299,7 @@ def get_normal_login(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
+            user_id=userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -328,10 +336,11 @@ def get_default_login(request):
             authorization=authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n",""))
             tomcat_count= b64_decode(authorization[2].replace("\n",""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON=content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -349,7 +358,7 @@ def get_default_login(request):
                 return Response (data)
     
             print 'after validate '
-            request_id = api_request_audit (request_id, data, apiName,global_user_id)
+            request_id = api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4=import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -357,7 +366,7 @@ def get_default_login(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
+            user_id=userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -385,10 +394,11 @@ def get_valid_pwd(request):
             authorization=authorization.split("-")
             public_key3_pem = b64_decode(authorization[1].replace("\n",""))
             tomcat_count= b64_decode(authorization[2].replace("\n",""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key3_pem)
             userJSON=content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -407,7 +417,7 @@ def get_valid_pwd(request):
     
             data = PasswordHash(data)
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps (data)
             public_key3=import_key(public_key3_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -415,7 +425,7 @@ def get_valid_pwd(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
+            user_id=userId
             #output=''
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary=tso_response_audit (request_id, output,apiName)
@@ -445,10 +455,11 @@ def get_valid_ans(request):
             private_key2_pem=b64_decode(authorization[0].replace("\n",""))
             public_key3_pem = b64_decode(authorization[1].replace("\n",""))
             tomcat_count= b64_decode(authorization[2].replace("\n",""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key3_pem)
             userJSON=content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -466,7 +477,7 @@ def get_valid_ans(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key3=import_key(public_key3_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -474,9 +485,11 @@ def get_valid_ans(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
+            user_id=userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            print 'output accesstoken',output
             stat = output.get (readProperty ('STATUS'))
+            print 'stat',stat
             emsg = output.get (readProperty ('ERROR_MSG'))
             encrypted_data=output["jEncResp"]
             private_key2 = import_key(private_key2_pem)
@@ -485,18 +498,22 @@ def get_valid_ans(request):
             else:
                 raise Exception(readProperty('110'))
             decrypted_json = json.loads(decrypted_data)
+            print 'output accesstoken decrypted_json',decrypted_json
             dictionary =tso_response_audit (request_id, output,apiName)
             if decrypted_json[readProperty('STATUS')]==readProperty('OK'):
                 access_token = replace_text(b64_encode(private_key2_pem), "\n", "") + "-" \
                                + replace_text(b64_encode(decrypted_json["sUserToken"]), "\n", "") + "-" \
-                               + replace_text(b64_encode(tomcat_count), "\n", "")
-                output = {readProperty('STATUS'): stat,readProperty('ACCESS_TOKEN'): access_token}
+                               + replace_text(b64_encode(tomcat_count), "\n", "") + "-" \
+                               + replace_text(b64_encode(userId), "\n", "")
+                decrypted_json[readProperty('ACCESS_TOKEN')] = access_token               
+                #output = {readProperty('STATUS'): stat,readProperty('ACCESS_TOKEN'): access_token}
             else:
-                output = {readProperty('STATUS'): stat,readProperty('ERROR_MSG'): emsg}
-            output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
-            api_response_audit (request_id, output,apiName)
+                decrypted_json = {readProperty('STATUS'): stat,readProperty('ERROR_MSG'): emsg}
+            print 'output',decrypted_json   
+            output = validation_and_manipulation (decrypted_json, apiName,dictionary)  # manipulation logic and call api_response_audit
+            api_response_audit (request_id, decrypted_json,apiName)
             logger.info(readProperty('113'))
-            return Response(output)
+            return Response(decrypted_json)
         
     except Exception as e:
         print "exception is ",e
@@ -519,10 +536,12 @@ def get_account_info(request):
             authorization=authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n",""))
             tomcat_count= b64_decode(authorization[2].replace("\n",""))
+            userId= b64_decode(authorization[3].replace("\n",""))
+            print 'userId',userId
             jKey = get_jkey(public_key4_pem)
             requestJSON=content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -540,7 +559,7 @@ def get_account_info(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4=import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -548,7 +567,7 @@ def get_account_info(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
+            user_id=userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -583,10 +602,11 @@ def get_load_retention_type(request):
             authorization=authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n",""))
             tomcat_count= b64_decode(authorization[2].replace("\n",""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON=content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -604,7 +624,7 @@ def get_load_retention_type(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4=import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -612,7 +632,7 @@ def get_load_retention_type(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=global_user_id
+            user_id=userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -641,10 +661,11 @@ def get_check_crkt_price_range(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -662,7 +683,7 @@ def get_check_crkt_price_range(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -670,7 +691,7 @@ def get_check_crkt_price_range(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -699,10 +720,11 @@ def get_validate_GTD(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -720,7 +742,7 @@ def get_validate_GTD(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -728,7 +750,7 @@ def get_validate_GTD(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -756,10 +778,11 @@ def get_validate_SLM_price(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -777,7 +800,7 @@ def get_validate_SLM_price(request):
                 return Response (data)
     
             print 'after validate '
-            request_id = api_request_audit (request_id, data, apiName,global_user_id)
+            request_id = api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -785,7 +808,7 @@ def get_validate_SLM_price(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -814,10 +837,11 @@ def get_place_order(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -835,7 +859,7 @@ def get_place_order(request):
                 return Response (data)
     
             print 'after validate '
-            request_id = api_request_audit (request_id, data, apiName,global_user_id)
+            request_id = api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -843,7 +867,7 @@ def get_place_order(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -871,10 +895,11 @@ def get_order_book(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -891,7 +916,7 @@ def get_order_book(request):
                 return Response (data)
     
             print 'after validate '
-            request_id = api_request_audit (request_id, data, apiName,global_user_id)
+            request_id = api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -899,7 +924,7 @@ def get_order_book(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -928,10 +953,11 @@ def get_modify_order(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -948,7 +974,7 @@ def get_modify_order(request):
                 return Response (data)
     
             print 'after validate '
-            request_id = api_request_audit (request_id, data, apiName,global_user_id)
+            request_id = api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -956,7 +982,7 @@ def get_modify_order(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -984,10 +1010,11 @@ def get_cancel_order(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -1005,7 +1032,7 @@ def get_cancel_order(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -1013,7 +1040,7 @@ def get_cancel_order(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1041,10 +1068,11 @@ def get_order_history(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -1062,7 +1090,7 @@ def get_order_history(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -1070,7 +1098,7 @@ def get_order_history(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1098,10 +1126,11 @@ def get_trade_book(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -1119,7 +1148,7 @@ def get_trade_book(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -1127,7 +1156,7 @@ def get_trade_book(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1155,10 +1184,11 @@ def get_holding(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -1176,7 +1206,7 @@ def get_holding(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -1184,7 +1214,7 @@ def get_holding(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1213,10 +1243,11 @@ def get_limits(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -1234,7 +1265,7 @@ def get_limits(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -1242,7 +1273,7 @@ def get_limits(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1271,10 +1302,11 @@ def get_user_profile(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -1292,7 +1324,7 @@ def get_user_profile(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -1300,7 +1332,7 @@ def get_user_profile(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1329,10 +1361,11 @@ def get_account_info(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -1350,7 +1383,7 @@ def get_account_info(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -1358,7 +1391,7 @@ def get_account_info(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1386,10 +1419,11 @@ def get_open_orders(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -1407,7 +1441,7 @@ def get_open_orders(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -1415,8 +1449,9 @@ def get_open_orders(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            print 'output',output
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -1445,10 +1480,11 @@ def get_bo_holdings(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -1466,7 +1502,7 @@ def get_bo_holdings(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -1474,7 +1510,7 @@ def get_bo_holdings(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1503,10 +1539,11 @@ def get_bo_Ul_Trades(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -1524,7 +1561,7 @@ def get_bo_Ul_Trades(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -1532,7 +1569,7 @@ def get_bo_Ul_Trades(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1561,10 +1598,11 @@ def get_logout(request):
             authorization = authorization.split("-")
             public_key4_pem = b64_decode(authorization[1].replace("\n", ""))
             tomcat_count = b64_decode(authorization[2].replace("\n", ""))
+            userId= b64_decode(authorization[3].replace("\n",""))
             jKey = get_jkey(public_key4_pem)
             requestJSON = content = request.body
             jsonObject = content
-            request_id = investak_request_audit (global_user_id, jsonObject, apiName)
+            request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
@@ -1582,7 +1620,7 @@ def get_logout(request):
                 return Response (data)
     
             print 'after validate '
-            request_id =api_request_audit (request_id, data, apiName,global_user_id)
+            request_id =api_request_audit (request_id, data, apiName,userId)
             json_data = json.dumps(data)
             public_key4 = import_key(public_key4_pem)
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
@@ -1590,7 +1628,7 @@ def get_logout(request):
             else:
                 raise Exception(readProperty('110'))
             tomcat_count = get_tomcat_count(tomcat_count)
-            user_id = global_user_id
+            user_id = userId
             output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1964,7 +2002,7 @@ def CheckAllParameter(content,ApiName,dict):
             for k1, v1 in v.items():
                 for v2 in v1:
                     b = v2.parameter
-                    expectList.append(b)
+                    expectList.append(b.lower())
     expectLen=len (expectList)
     contentLen=len (content)
     print 'expectLen',expectLen
@@ -1978,7 +2016,7 @@ def CheckAllParameter(content,ApiName,dict):
     if not errorList:
         for param, v in content.items():
             print 'param',param
-            if (param in expectList):
+            if (param.lower() in expectList):
                 pass
             else:
                 arrayValue = [param]
@@ -1997,6 +2035,7 @@ def CheckInputBody(content,ApiName,dict):
     print 'CheckInputBody'
     check=True
     print dict.get(ApiName)[0].inputApi
+    print 'ApiName',ApiName
     errorList=[]
     expectMsg=''
     stat = ''
@@ -2063,7 +2102,7 @@ def api_request_audit(request_id,request,apiName,userId):
     if(logging==readProperty('CAPITAL_YES') and readProperty('API_TSO_AUDIT_ENABLE')==readProperty('CAPITAL_YES') and readProperty('INVESTAK_API_AUDIT_ENABLE')==readProperty('CAPITAL_YES')):
         obj, created = Audit.objects.update_or_create (
             request_id=request_id,
-            defaults={readProperty('API_REQUEST'): request,readProperty('API_REQUEST_TIME_STAMP'):dateNow},
+            defaults={readProperty('API_REQUEST'): request,readProperty('API_REQUEST_TIME_STAMP'):dateNow,readProperty('USER_ID'):userId},
         )
     else:
         Auditobj = Audit (user_id=userId, api_request=request, api_request_time_stamp=dateNow)
@@ -2091,6 +2130,7 @@ def api_response_audit(request_id,request,apiName):
     print 'api_response_audit ',request
 
 def tso_response_audit(request_id,request,apiName):
+    print 'request',request 
     logger.info(readProperty('112'))
     dateNow = datetime.now ()
     stat = request.get(readProperty('STATUS'))
