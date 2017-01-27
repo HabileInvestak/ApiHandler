@@ -48,45 +48,49 @@ def readProperty(name):
         logger.exception(e)
         raise Exception(e)
     
-
+    
 '''Provides you with initial token for Login '''
-@api_view([readProperty('METHOD_TYPE')])
+@api_view([readProperty("METHOD_TYPE")])
 def get_initial_token(request):
     logger.info(readProperty("ENTERING_METHOD"))
     try:
-        if request.method == readProperty('METHOD_TYPE'):
-            content = request.body
-            url = ApiHomeDict.get(readProperty('GET_INITIAL_KEY'))[0].url
+        if request.method == readProperty("METHOD_TYPE"):
+            bodyContent = request.body
+            url = ApiHomeDict.get(readProperty("GET_INITIAL_KEY"))[0].url
             apiName = readProperty ("GET_INITIAL_KEY")
-            print 'url',url
-            authorization = request.META.get(readProperty('AUTHORIZATION'))
-            jsonObject = content
-            userId=''
-            request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
-            data = dataArray[0]            
-            BodyIn = dataArray[1]
-            if 'stat' in data:
-                api_response_audit (request_id, data, apiName)
+            authorization = request.META.get(readProperty("AUTHORIZATION"))
+            userId=""
+            '''Store InvestAK request for audit trial purpose'''
+            request_id = investak_request_audit (userId, bodyContent, apiName)
+ 
+            print "Before check data"
+            
+            '''This method will check input availability and input format'''
+            result = chk_input_availability_and_format (bodyContent, apiName, ApiHomeDict)
+          
+            print "result=============",result 
+            #print "Output data",data[readProperty('STATUS')]
+            
+            if readProperty("STATUS") in result and result[readProperty("STATUS")]==readProperty("NOT_OK"):
+                api_response_audit (request_id, result, apiName)
                 logger.info(readProperty("EXITING_METHOD"))
-                return Response (data)
-            if BodyIn == True:
-                jsonObject = json.loads (content)
-                userId=jsonObject.get('uid')
-            data = validation_and_manipulation (jsonObject, apiName,InputDict)
-            print 'data ', data
-            if 'stat' in data:
-                api_response_audit(request_id, data,apiName)
+                return Response (result)
+            
+            jsonObject = json.loads (bodyContent)
+            userId=jsonObject.get('uid')
+            print "Before validation"
+            result = validation_and_manipulation (jsonObject, apiName,InputDict)
+            print "After validation",result
+            if readProperty("STATUS") in result and result[readProperty("STATUS")]==readProperty("NOT_OK"):
+                api_response_audit(request_id, result,apiName)
                 logger.info(readProperty("EXITING_METHOD"))
-                return Response(data)
+                return Response(result)
             print 'after validate '
-            request_id=api_request_audit(request_id, data, apiName,userId)
-            output = send_sequest(content, url, authorization, user_id="", tomcat_count="", jKey="", jData="")
-            print 'output',output
-            #d = json.loads(output)
-            d = output
-            initial_public_key1 = d[readProperty('PUBLIC_KEY')]
-            tomcat_count = d[readProperty('TOMCAT_COUNT')]
+            request_id=api_request_audit(request_id, result, apiName,userId)
+            output = send_request(bodyContent, url, authorization, user_id="", tomcat_count="", jKey="", jData="")
+            print "output",output
+            initial_public_key1 = output[readProperty('PUBLIC_KEY')]
+            tomcat_count = output[readProperty('TOMCAT_COUNT')]
             public_key1_pem = b64_decode(initial_public_key1)
             key_pair = generate_key_pair()
             public_key2_pem = get_public_key_pem(key_pair)
@@ -95,13 +99,13 @@ def get_initial_token(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(public_key2_pem, public_key1, 2048)
             else:
-                raise Exception(readProperty('110'))    
+                raise Exception(readProperty("ALGORITHM"))    
             jKey = get_jkey(public_key1_pem)
             user_id = userId
 
             url = ApiHomeDict.get(readProperty('GET_PRE_AUTHENTICATION_KEY'))[0].url
             content=readProperty('YES')
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
             stat = output.get (readProperty ('STATUS'))
             emsg = output.get (readProperty ('ERROR'))
             print 'tomcat_count ',tomcat_count
@@ -110,7 +114,7 @@ def get_initial_token(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 decrypted_public_key3 = decrypt(initial_public_key3, private_key2)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             print readProperty('SLASH_N')
             initial_token = replace_text(b64_encode(private_key2_pem),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(decrypted_public_key3),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(tomcat_count),"\n","") + readProperty('HYPEN') + replace_text(b64_encode(userId),"\n","")
             dictionary =tso_response_audit (request_id, output,apiName)
@@ -118,7 +122,10 @@ def get_initial_token(request):
                 output = {readProperty('STATUS'):stat,readProperty('INITIAL_TOKEN'): initial_token,readProperty('TOMCAT_COUNT'):tomcat_count}
             else:
                 output = {readProperty ('STATUS'): stat,readProperty ('ERROR'): emsg}
+            print "Before validation"
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            print "After validation"
+            print "output",output
             api_response_audit (request_id, output,apiName)
             logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
@@ -126,7 +133,7 @@ def get_initial_token(request):
     except Exception as e:
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
     
@@ -150,7 +157,7 @@ def get_login_2fa(request):
             userJSON=content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data=dataArray[0]
             BodyIn=dataArray[1]
             if 'stat' in data:
@@ -172,10 +179,10 @@ def get_login_2fa(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(userJSON,public_key3, 2048)
             else:
-                raise Exception(readProperty('110'))    
+                raise Exception(readProperty("ALGORITHM"))    
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -187,7 +194,7 @@ def get_login_2fa(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -209,7 +216,7 @@ def get_login(request):
             userJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -232,10 +239,10 @@ def get_login(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key3, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -246,7 +253,7 @@ def get_login(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
    
@@ -270,7 +277,7 @@ def get_normal_login(request):
             userJSON=content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -293,10 +300,10 @@ def get_normal_login(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key3, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -305,7 +312,7 @@ def get_normal_login(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 decrypted_data = decrypt(encrypted_data,private_key2)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             decrypted_json = json.loads(decrypted_data)
             print decrypted_json
             logger.info(readProperty("EXITING_METHOD"))
@@ -315,7 +322,7 @@ def get_normal_login(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)   
         
@@ -337,7 +344,7 @@ def get_default_login(request):
             requestJSON=content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -360,10 +367,10 @@ def get_default_login(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data,public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -374,7 +381,7 @@ def get_default_login(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
     
@@ -395,7 +402,7 @@ def get_valid_pwd(request):
             userJSON=content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -419,11 +426,11 @@ def get_valid_pwd(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data,public_key3, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=userId
             #output=''
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary=tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName, dictionary)  #manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -434,7 +441,7 @@ def get_valid_pwd(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)    
 
@@ -456,7 +463,7 @@ def get_valid_ans(request):
             userJSON=content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -479,10 +486,10 @@ def get_valid_ans(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data,public_key3, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             print 'output accesstoken',output
             stat = output.get (readProperty ('STATUS'))
             print 'stat',stat
@@ -492,7 +499,7 @@ def get_valid_ans(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                  decrypted_data=decrypt(encrypted_data,private_key2)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             decrypted_json = json.loads(decrypted_data)
             print 'output accesstoken decrypted_json',decrypted_json
             dictionary =tso_response_audit (request_id, output,apiName)
@@ -515,7 +522,7 @@ def get_valid_ans(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -538,7 +545,7 @@ def get_account_info(request):
             requestJSON=content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -561,10 +568,10 @@ def get_account_info(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data,public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -575,7 +582,7 @@ def get_account_info(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -603,7 +610,7 @@ def get_load_retention_type(request):
             requestJSON=content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -626,10 +633,10 @@ def get_load_retention_type(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data,public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count=get_tomcat_count(tomcat_count)
             user_id=userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output)
@@ -640,7 +647,7 @@ def get_load_retention_type(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -662,7 +669,7 @@ def get_check_crkt_price_range(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -685,10 +692,10 @@ def get_check_crkt_price_range(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -699,7 +706,7 @@ def get_check_crkt_price_range(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -721,7 +728,7 @@ def get_validate_GTD(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -744,10 +751,10 @@ def get_validate_GTD(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -758,7 +765,7 @@ def get_validate_GTD(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)    
 
@@ -779,7 +786,7 @@ def get_validate_SLM_price(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -802,10 +809,10 @@ def get_validate_SLM_price(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -816,7 +823,7 @@ def get_validate_SLM_price(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -838,7 +845,7 @@ def get_place_order(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -861,10 +868,10 @@ def get_place_order(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -875,7 +882,7 @@ def get_place_order(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -896,7 +903,7 @@ def get_order_book(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -918,10 +925,10 @@ def get_order_book(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -932,7 +939,7 @@ def get_order_book(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -954,7 +961,7 @@ def get_modify_order(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -976,10 +983,10 @@ def get_modify_order(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -990,7 +997,7 @@ def get_modify_order(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output) 
 
@@ -1011,7 +1018,7 @@ def get_cancel_order(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -1034,10 +1041,10 @@ def get_cancel_order(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -1048,7 +1055,7 @@ def get_cancel_order(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -1069,7 +1076,7 @@ def get_order_history(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -1092,10 +1099,10 @@ def get_order_history(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -1106,7 +1113,7 @@ def get_order_history(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -1127,7 +1134,7 @@ def get_trade_book(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -1150,10 +1157,10 @@ def get_trade_book(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -1164,7 +1171,7 @@ def get_trade_book(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -1185,7 +1192,7 @@ def get_holding(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -1208,10 +1215,10 @@ def get_holding(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -1222,7 +1229,7 @@ def get_holding(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -1244,7 +1251,7 @@ def get_limits(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -1267,10 +1274,10 @@ def get_limits(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -1281,7 +1288,7 @@ def get_limits(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -1303,7 +1310,7 @@ def get_user_profile(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -1326,10 +1333,10 @@ def get_user_profile(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -1340,7 +1347,7 @@ def get_user_profile(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -1362,7 +1369,7 @@ def get_account_info(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -1385,10 +1392,10 @@ def get_account_info(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -1399,7 +1406,7 @@ def get_account_info(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -1420,7 +1427,7 @@ def get_open_orders(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -1443,10 +1450,10 @@ def get_open_orders(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             print 'output',output
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
@@ -1458,7 +1465,7 @@ def get_open_orders(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)    
 
@@ -1481,7 +1488,7 @@ def get_bo_holdings(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -1504,10 +1511,10 @@ def get_bo_holdings(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -1518,7 +1525,7 @@ def get_bo_holdings(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -1540,7 +1547,7 @@ def get_bo_Ul_Trades(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -1563,10 +1570,10 @@ def get_bo_Ul_Trades(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -1577,7 +1584,7 @@ def get_bo_Ul_Trades(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
@@ -1599,7 +1606,7 @@ def get_logout(request):
             requestJSON = content = request.body
             jsonObject = content
             request_id = investak_request_audit (userId, jsonObject, apiName)
-            dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
+            dataArray = chk_input_availability_and_format (content, apiName, ApiHomeDict)
             data = dataArray[0]
             BodyIn = dataArray[1]
             if 'stat' in data:
@@ -1622,10 +1629,10 @@ def get_logout(request):
             if(readProperty('ALGORITHM_TYPE')=='RSA'):
                 jData = encrypt(json_data, public_key4, 2048)
             else:
-                raise Exception(readProperty('110'))
+                raise Exception(readProperty("ALGORITHM"))
             tomcat_count = get_tomcat_count(tomcat_count)
             user_id = userId
-            output = send_sequest(content, url, authorization, user_id, tomcat_count, jKey, jData)
+            output = send_request(content, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
@@ -1636,332 +1643,314 @@ def get_logout(request):
         print "exception is ",e
         logger.exception(e)
         err=str(e)
-        output=sendResponse(err)
+        output=createErrorResponse(err)
         api_response_audit (request_id, output,apiName)
         return Response(output)
 
 
-def validation_and_manipulation(jsonObject,apiName,Dict):
+def validation_and_manipulation(jsonObject,apiName,dict):
     logger.info(readProperty("ENTERING_METHOD"))
-    data={}
-    if not data:
-        data = validation_Parameter (jsonObject, apiName, Dict)
-    elif not data:
-        jsonObject = manipulation_Default (jsonObject, apiName, Dict)
-        data = validation_All (jsonObject, apiName, Dict)#see
-    elif not data:
-        jsonObject = manipulation_Transformation(jsonObject, apiName, Dict)
-        data=jsonObject
-        print 'Actual Data'
+    result={}
+    try:
+        result = validation_parameter (jsonObject, apiName, dict)
+        if not result:
+            jsonObject = manipulation_default (jsonObject, apiName, dict)
+            result = validation_all (jsonObject, apiName, dict)#see
+        if not result:
+            jsonObject = manipulation_transformation(jsonObject, apiName, dict)
+            result=jsonObject
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))
-    return data
+    return result
 
 
-def manipulation_Transformation(jsonObject, apiName, dict):
+def manipulation_transformation(jsonObject, apiName, dict):
     logger.info(readProperty("ENTERING_METHOD"))
-    if jsonObject and  not dict==FailureDict and not dict==JsonDict:
-        for param, value in jsonObject.items():
-            transformation= dict.get(apiName).get(param)[0].transformation
-            value = transformationValidation (transformation, value)
-            jsonObject[param] = value
-    logger.info(readProperty("EXITING_METHOD"))
-    return jsonObject
-
-
-def manipulation_Default(jsonObject, apiName, dict):
-    logger.info(readProperty("ENTERING_METHOD"))
-    if jsonObject and dict==InputDict:
-        for param, value in jsonObject.items():
-
-            default= dict.get(apiName).get(param)[0].default
-            value = defaultValidation (default, value)
-            jsonObject[param]=value
+    try:
+        if jsonObject and  not dict==FailureDict and not dict==JsonDict:
+            for param, value in jsonObject.items():
+                transformation= dict.get(apiName).get(param)[0].transformation
+                value = transformation_validation (transformation, value)
+                jsonObject[param] = value
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))
     return jsonObject
 
 
-def transformationValidation(transformation,Paramvalue):
+def manipulation_default(jsonObject, apiName, dict):
     logger.info(readProperty("ENTERING_METHOD"))
-    if isBlank(transformation):
-        pass
-    else:
-        if isNotBlank(Paramvalue):
-            transformation=ListDict.get(transformation).get(Paramvalue)[0].targetValue
-            Paramvalue=transformation
-        print 'transformation ', Paramvalue
+    try:
+        if jsonObject and dict==InputDict:
+            for param, value in jsonObject.items():
+                default= dict.get(apiName).get(param)[0].default
+                value = default_validation (default, value)
+                jsonObject[param]=value
+    except Exception as e:
+        raise e
+    logger.info(readProperty("EXITING_METHOD"))
+    return jsonObject
+
+
+def transformation_validation(transformation,Paramvalue):
+    logger.info(readProperty("ENTERING_METHOD"))
+    try:
+        if isBlank(transformation):
+            pass
+        else:
+            if isNotBlank(Paramvalue):
+                transformation=ListDict.get(transformation).get(Paramvalue)[0].targetValue
+                Paramvalue=transformation
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))
     return Paramvalue
 
-def defaultValidation(default,Paramvalue):
+def default_validation(default,paramvalue):
     logger.info(readProperty("ENTERING_METHOD"))
-    if isBlank(default):
-        pass
-    elif(isBlank(Paramvalue)):
-        Paramvalue=default
+    try:
+        if isBlank(default):
+            pass
+        elif(isBlank(Paramvalue)):
+            paramvalue=default
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))
-    return Paramvalue
+    return paramvalue
 
 
-def validation_CheckInput(jsonObject,apiName,Dict):
+'''This method will check the input for availability and format'''
+def chk_input_availability_and_format(jsonObject,apiName,dict):
     logger.info(readProperty("ENTERING_METHOD"))
     data = {}
-    BodyIn=True
-    print 'validation_CheckInput'
-    if (Dict == ApiHomeDict):
-        print 'validation_CheckInput'
-        Param = CheckInputBody(jsonObject, apiName, ApiHomeDict)
-        checkParam = Param[0]
-        print checkParam
-        errorParam = Param[1]
-        print errorParam
-        stat = Param[2]
-        print stat
-        BodyIn = Param[3]
-        print 'BodyIn',BodyIn
-        if (checkParam == False):
-            data = sendErrorRequesterror (errorParam, stat)
-    logger.info(readProperty("EXITING_METHOD"))        
-    return  data,BodyIn
-
-
-def validation_Parameter(jsonObject,apiName,Dict):
-    logger.info(readProperty("ENTERING_METHOD"))
-    data = {}
-    if jsonObject:
-        Param = CheckAllParameter (jsonObject, apiName, Dict)
-        checkParam = Param[0]
-        print checkParam
-        errorParam = Param[1]
-        print errorParam
-        stat = Param[2]
-        print stat
-        if (checkParam == False):
-            data = sendErrorRequesterror (errorParam, stat)
+    bodyIn=True
+    try:
+        if (dict == ApiHomeDict):
+            param = check_input_body(jsonObject, apiName, ApiHomeDict)
+            isError = param[0]
+            errorList = param[1]
+            if (isError == True):
+                data = errorResponse (errorList, readProperty("NOT_OK"))
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))        
     return  data
 
 
-def validation_All(jsonObject,apiName,Dict):
+def validation_parameter(jsonObject,apiName,Dict):
     logger.info(readProperty("ENTERING_METHOD"))
-    data = {}
-    if jsonObject:
-        dataType = checkAll (jsonObject, apiName, Dict)
-        checkType = dataType[0]
-        errorDataType = dataType[1]
-        stat = dataType[2]
-        if (checkType == False):
-            data = sendErrorRequesterror (errorDataType, stat)
-    logger.info(readProperty("EXITING_METHOD"))
-    return  data
+    result = {}
+    try:
+        if jsonObject:
+            param = check_all_parameter (jsonObject, apiName, Dict)
+            isErrorAvailable = param[0]
+            errorList = param[1]
+            if (isErrorAvailable == True):
+                result = errorResponse (errorList, readProperty("NOT_OK"))
+    except Exception as e:
+        raise e
+    logger.info(readProperty("EXITING_METHOD"))        
+    return  result
 
-def sendErrorRequesterror(errorList,stat):
+
+def validation_all(jsonObject,apiName,Dict):
     logger.info(readProperty("ENTERING_METHOD"))
-    i=len(errorList)
-    print i
+    result = {}
+    try:
+        if jsonObject:
+            dataType = check_all (jsonObject, apiName, Dict)
+            isErrorAvailable = dataType[0]
+            errorList = dataType[1]
+            if (isErrorAvailable == True):
+                result = errorResponse (errorList, readProperty("NOT_OK"))
+    except Exception as e:
+        raise e
+    logger.info(readProperty("EXITING_METHOD"))
+    return  result
+
+
+'''This method is used to create error response'''
+def errorResponse(errorList,stat):
+    logger.info(readProperty("ENTERING_METHOD"))
     response_data = {}
-    for v in errorList:
-
-        response_data.setdefault(readProperty('ERROR_MSG'), [])
-        response_data[readProperty('ERROR_MSG')].append(v)
-        response_data[readProperty('STATUS')] = stat
-
-    print 'response_data',response_data
+    try:
+        for error in errorList:
+            response_data.setdefault(readProperty('ERROR_MSG'), [])
+            response_data[readProperty('ERROR_MSG')].append(error)
+            response_data[readProperty('STATUS')] = stat
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))
     return response_data
 
-def checkAll(content,ApiName,dict):
+
+def check_all(content,ApiName,dict):
     logger.info(readProperty("ENTERING_METHOD"))
-    check=True
-    stat = ''
+    isErrorAvailale=False
     errorMsg=''
     errorList=[]
     errorListAll=[]
-    print 'content', content
-    for param, value in content.items():
-        dataType= dict.get(ApiName).get(param)[0].dataType
-        validValues= dict.get(ApiName).get(param)[0].validValues
-        print 'validValues',validValues
-        if not dict==FailureDict and not dict==JsonDict:
-            optional= dict.get(ApiName).get(param)[0].optional
-            errorList = optionalValidation (optional, value, param)
-            errorListAll.extend (errorList)
-        if not errorList:
-            errorList=dataTypeValidation(dataType,value,param,dict,validValues)
-            errorListAll.extend (errorList)
-        if not errorList:
-            errorList = ValidValuesValidation (validValues, value, param,dataType)
-            errorListAll.extend (errorList)
-        errorList=[]
-
-    if errorListAll:
-        check = False
-        stat  =readProperty('NOT_OK')
-    print errorListAll
+    try:
+        for param, value in content.items():
+            dataType= dict.get(ApiName).get(param)[0].dataType
+            validValues= dict.get(ApiName).get(param)[0].validValues
+            if not dict==FailureDict and not dict==JsonDict:
+                optional= dict.get(ApiName).get(param)[0].optional
+                errorList = optional_validation (optional, value, param)
+                errorListAll.extend (errorList)
+            if not errorList:
+                errorList=dataType_validation(dataType,value,param,dict,validValues)
+                errorListAll.extend (errorList)
+            if not errorList:
+                errorList = valid_values_validation (validValues, value, param,dataType)
+                errorListAll.extend (errorList)
+            errorList=[]
+    
+        if errorListAll:
+            isErrorAvailale = True
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))
-    return check,errorListAll,stat
+    return isErrorAvailale,errorListAll
 
 
 
-def ValidValuesValidation(validValues,paramValue,param,dataType):
+def valid_values_validation(validValues,paramValue,param,dataType):
     logger.info(readProperty("ENTERING_METHOD"))
     errorList = []
     errorMsg=''
-    if not (dataType == readProperty('JSON')):
-
-        if isBlank(validValues):
-            pass
-        else:
-            check=1
-            words = validValues.split (',')
-            for word in words:
-                print 'word ',word
-                print 'Paramvalue ',paramValue
-                if (paramValue == word):
-                    print 'yes'
-                    check = 0
-            print 'check ',check
-            if isNotBlank(paramValue) and check==0:
+    try:
+        if not (dataType == readProperty('JSON')):
+            if isBlank(validValues):
                 pass
             else:
-                arrayValue=[param,validValues,paramValue]
-                errorMsg=errorMsgCreate(readProperty('104'),arrayValue)
-                print errorMsg
-    print 'errorList validVal ',errorList
-    if errorMsg:
-        errorList.append (errorMsg)
+                check=1
+                words = validValues.split (',')
+                for word in words:
+                    if (paramValue == word):
+                        check = 0
+                if isNotBlank(paramValue) and check==0:
+                    pass
+                else:
+                    arrayValue=[param,validValues,paramValue]
+                    errorMsg=create_error_message(readProperty("INVALID_VALUE"),arrayValue)
+        if errorMsg:
+            errorList.append (errorMsg)
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))    
     return errorList
 
-def errorMsgCreate(string,arrayValue):
-    logger.info(readProperty("ENTERING_METHOD"))
-    print 'string',string
-    for index, item in enumerate (arrayValue):
-        index = str(index)
-        if type(item)==int:
-            item = str (item)
-        newstr = string.replace ('['+index+']',item)
-        string = newstr
-        print string
-    logger.info(readProperty("EXITING_METHOD"))
-    return  string
 
-def optionalValidation(optional, Paramvalue, param):
+'''This method will create error message using property file and place holder'''
+def create_error_message(errorMessage,arrayValue):
+    logger.info(readProperty("ENTERING_METHOD"))
+    try:
+        for index, item in enumerate (arrayValue):
+            index = str(index)
+            if type(item)==int:
+                item = str (item)
+            errorMessage = errorMessage.replace ('['+index+']',item)
+    except Exception as e:
+        raise e
+    logger.info(readProperty("EXITING_METHOD"))
+    return  errorMessage
+
+
+def optional_validation(optional, Paramvalue, param):
     logger.info(readProperty("ENTERING_METHOD"))
     errorList = []
-    errorMsg = ''
-    if isBlank(optional):
-        pass
-    elif(optional == readProperty('YES')):
-        if isBlank(Paramvalue) :
-            print '1'
-            print '1'
-            if Paramvalue is not None:
-                print '2'
-                print("param ",param,"-Paramvalue ",Paramvalue)
-                arrayValue = [param]
-                errorMsg = errorMsgCreate (readProperty ('105'), arrayValue)
-                print errorMsg
-
-    if errorMsg:
-        errorList.append (errorMsg)
+    errorMsg = ""
+    try:
+        if isBlank(optional):
+            pass
+        elif(optional == readProperty('YES')):
+            if isBlank(Paramvalue) :
+                if Paramvalue is not None:
+                    arrayValue = [param]
+                    errorMsg = create_error_message (readProperty ("MANDATORY_FIELD"), arrayValue)
+        if errorMsg:
+            errorList.append (errorMsg)
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))
     return errorList
 
-def dataTypeValidation(dataType,Paramvalue,param,dict,validValues):
+def dataType_validation(dataType,Paramvalue,param,dict,validValues):
     logger.info(readProperty("ENTERING_METHOD"))
     errorList = []
     errorMsg=''
-    if (dataType == readProperty('STRING')):
-        pass
-    elif (dataType == readProperty('CHARACTER')):
-        Valuelen = len(Paramvalue)
-        if (Valuelen == 1):
+    try:
+        if (dataType == readProperty('STRING')):
             pass
-        else:
-            arrayValue = [param, dataType]
-            errorMsg = errorMsgCreate (readProperty ('102'), arrayValue)
-            print errorMsg
-    elif(dataType == readProperty('NUMBER')):
-        if(Paramvalue.isdigit()):
-            pass
-        else:
-            arrayValue = [param, dataType]
-            errorMsg = errorMsgCreate (readProperty ('102'), arrayValue)
-            print errorMsg
-    elif (dataType == readProperty('DECIMAL')):
-        '''if (value.isdecimal()):
-            pass
-        else:
-            errorMsg = param + " " + readProperty ('102') + " " + dataType
-            print errorMsg'''
-        splitNum=Paramvalue.split('.', 1)
-        print splitNum[1].isdigit () and splitNum[0].isdigit ()
-        if(splitNum[1].isdigit() and splitNum[0].isdigit ()):
-            if (isinstance (json.loads (Paramvalue), (float))):
+        elif (dataType == readProperty('CHARACTER')):
+            Valuelen = len(Paramvalue)
+            if (Valuelen == 1):
                 pass
             else:
                 arrayValue = [param, dataType]
-                errorMsg = errorMsgCreate (readProperty ('102'), arrayValue)
-                print 'hi1',errorMsg
-        else:
-            arrayValue = [param, dataType]
-            errorMsg = errorMsgCreate (readProperty ('102'), arrayValue)
-            print 'hi2',errorMsg
-
-    elif (dataType == readProperty('LIST')):
-        print type (Paramvalue)
-        print type(Paramvalue) is list
-        if type(Paramvalue) is list:
-            pass
-        else:
-            arrayValue = [param, dataType]
-            errorMsg = errorMsgCreate (readProperty ('102'), arrayValue)
-            print errorMsg
-
-    elif (dataType == readProperty('DATE_TIME') and dict==InputDict):
-        print type (Paramvalue)
-        timestamp = time.strftime ('%m/%d/%Y/%w/%H:%M:%S')
-        Date=validateDate (Paramvalue)
-        print Date
-        print timestamp
-        if Date:
-            pass
-        else:
-            arrayValue = [param,dataType]
-            errorMsg = errorMsgCreate (readProperty ('103'), arrayValue)
-            print errorMsg
-
-    elif (dataType == readProperty ('URL')):
-
-        if exist_Url(Paramvalue):
-            print 'correct url'
-            pass
-        else:
-            arrayValue = [param, dataType]
-            errorMsg = errorMsgCreate (readProperty ('102'), arrayValue)
-            print errorMsg
-
-    elif (dataType == readProperty ('JSON')):
-        data={}
-        print 'JSON data type validation'
-        print 'param Value ',Paramvalue
-        print 'validValues ',validValues
-        #data = validation_and_manipulation (jsonObject, apiName, InputDict)
-        if type (Paramvalue) is list:
-            Paramvalue = {k: '' for k in Paramvalue}
-            print 'ParamValueDict',Paramvalue
-            data=validation_and_manipulation(Paramvalue, validValues, JsonDict)
-            print 'JSON data ',data
-            if readProperty('STATUS') in data:
-                List = data.get (readProperty ('ERROR_MSG'))
-                for errorMsg in List:
-                    errorList.append (errorMsg)
-        else:
-            print 'not list',Paramvalue
-    # SSBOETOD need write
-
-    if errorMsg:
-        errorList.append (errorMsg)
+                errorMsg = create_error_message (readProperty ("INVALID_DATATYPE"), arrayValue)
+        elif(dataType == readProperty('NUMBER')):
+            if(Paramvalue.isdigit()):
+                pass
+            else:
+                arrayValue = [param, dataType]
+                errorMsg = create_error_message (readProperty ("INVALID_DATATYPE"), arrayValue)
+        elif (dataType == readProperty('DECIMAL')):
+            '''if (value.isdecimal()):
+                pass
+            else:
+                errorMsg = param + " " + readProperty ("INVALID_DATATYPE") + " " + dataType
+                print errorMsg'''
+            splitNum=Paramvalue.split('.', 1)
+            print splitNum[1].isdigit () and splitNum[0].isdigit ()
+            if(splitNum[1].isdigit() and splitNum[0].isdigit ()):
+                if (isinstance (json.loads (Paramvalue), (float))):
+                    pass
+                else:
+                    arrayValue = [param, dataType]
+                    errorMsg = create_error_message (readProperty ("INVALID_DATATYPE"), arrayValue)
+            else:
+                arrayValue = [param, dataType]
+                errorMsg = create_error_message (readProperty ("INVALID_DATATYPE"), arrayValue)
+        elif (dataType == readProperty('LIST')):
+            if type(Paramvalue) is list:
+                pass
+            else:
+                arrayValue = [param, dataType]
+                errorMsg = create_error_message (readProperty ("INVALID_DATATYPE"), arrayValue)
+        elif (dataType == readProperty('DATE_TIME') and dict==InputDict):
+            timestamp = time.strftime ('%m/%d/%Y/%w/%H:%M:%S')
+            Date=validateDate (Paramvalue)
+            if Date:
+                pass
+            else:
+                arrayValue = [param,dataType]
+                errorMsg = create_error_message (readProperty ("INVALID_DATATYPE_DATE"), arrayValue)
+        elif (dataType == readProperty ('URL')):
+            if exist_Url(Paramvalue):
+                pass
+            else:
+                arrayValue = [param, dataType]
+                errorMsg = create_error_message (readProperty ("INVALID_DATATYPE"), arrayValue)
+        elif (dataType == readProperty ('JSON')):
+            data={}
+            #data = validation_and_manipulation (jsonObject, apiName, InputDict)
+            if type (Paramvalue) is list:
+                Paramvalue = {k: '' for k in Paramvalue}
+                data=validation_and_manipulation(Paramvalue, validValues, JsonDict)
+                if readProperty('STATUS') in data:
+                    List = data.get (readProperty ('ERROR_MSG'))
+                    for errorMsg in List:
+                        errorList.append (errorMsg)
+            else:
+                print 'not list',Paramvalue
+        # SSBOETOD need write
+        if errorMsg:
+            errorList.append (errorMsg)
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))    
     return errorList
 
@@ -1985,165 +1974,163 @@ def validateDate(date_text):
     logger.info(readProperty("EXITING_METHOD"))    
     return Date
 
-def CheckAllParameter(content,ApiName,dict):
+def check_all_parameter(content,ApiName,dict):
     logger.info(readProperty("ENTERING_METHOD"))
-    check=True
+    isErrorAvailable=False
     #print dict.get(ApiName).get(ApiName)[0].parameter
     errorList=[]
     expectList=[]
     expectMsg=''
     stat = ''
-    for k, v in dict.items():
-        if k == ApiName:
-            for k1, v1 in v.items():
-                for v2 in v1:
-                    b = v2.parameter
-                    expectList.append(b.lower())
-    expectLen=len (expectList)
-    contentLen=len (content)
-    print 'expectLen',expectLen
-    print 'contentLen',contentLen
-    if (expectLen != contentLen) and not dict==JsonDict:
-        arrayValue = [expectLen,contentLen]
-        expectMsg = errorMsgCreate (readProperty ('109'), arrayValue)
-        errorList.append (expectMsg)
-    print 'expectList',expectList
-    print 'content ',content
-    if not errorList:
-        for param, v in content.items():
-            print 'param',param
-            if (param.lower() in expectList):
-                pass
-            else:
-                arrayValue = [param]
-                errorMsg = errorMsgCreate (readProperty ('101'), arrayValue)
-                errorList.append(errorMsg)
-    if errorList:
-        stat = readProperty('NOT_OK')
-        check = False
-    print errorList
-    print 'stat ',stat
+    try:
+        for k, v in dict.items():
+            if k == ApiName:
+                for k1, v1 in v.items():
+                    for v2 in v1:
+                        b = v2.parameter
+                        expectList.append(b.lower())
+        expectLen=len (expectList)
+        contentLen=len (content)
+        if (expectLen != contentLen) and not dict==JsonDict:
+            arrayValue = [expectLen,contentLen]
+            expectMsg = create_error_message (readProperty ("EXPECTED_AVAILABLE_PARAMETERS"), arrayValue)
+            errorList.append (expectMsg)
+        if not errorList:
+            for param, v in content.items():
+                if (param.lower() in expectList):
+                    pass
+                else:
+                    arrayValue = [param]
+                    errorMsg = create_error_message (readProperty ("INVALID_FIELD"), arrayValue)
+                    errorList.append(errorMsg)
+        if errorList:
+            isErrorAvailable = True
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))
-    return check,errorList,stat
+    return isErrorAvailable,errorList
 
-def CheckInputBody(content,ApiName,dict):
+
+'''This method will check the input for availability and format'''
+def check_input_body(content,ApiName,dict):
     logger.info(readProperty("ENTERING_METHOD"))
-    print 'CheckInputBody'
-    check=True
-    print dict.get(ApiName)[0].inputApi
-    print 'ApiName',ApiName
+    errorAvailable=False
     errorList=[]
-    expectMsg=''
     stat = ''
-    BodyIn=True
-    checkBody=dict.get(ApiName)[0].inputApi
-    if checkBody==readProperty('CAPITAL_YES'):
-        if content:
-            key=''
-            print key
-            if(readProperty('INPUT_OUTPUT_TYPE')=='JSON'):
-                key=checkJson(content)
-                print 'key ',key
-                if key=='0':
-                    arrayValue = []
-                    errorMsg = errorMsgCreate (readProperty ('108'), arrayValue)
-                    errorList.append (errorMsg)
+    try:
+        isInputAvailable=dict.get(ApiName)[0].inputApi
+        print "isInputAvailable",isInputAvailable
+        print "readProperty",readProperty("YES")
+        if isInputAvailable==readProperty("YES"):
+            if content:
+                if(readProperty('INPUT_OUTPUT_TYPE')==readProperty ("JSON")):
+                    result=checkJson(content)
+                    print "result",result
+                    if result==False:
+                        arrayValue = [readProperty ("JSON")]
+                        errorMsg = create_error_message (readProperty ("BODY_INPUT_INVALID_FORMAT"), arrayValue)
+                        errorList.append (errorMsg)
+                else:
+                    pass#raise Exception(readProperty('111'))            
             else:
-                raise Exception(readProperty('111'))            
+                arrayValue = []
+                errorMsg = create_error_message (readProperty ("BODY_INPUT_REQUIRED"), arrayValue)
+                errorList.append(errorMsg)
+    
         else:
-            arrayValue = []
-            errorMsg = errorMsgCreate (readProperty ('106'), arrayValue)
-            errorList.append(errorMsg)
-
-    else:
-        BodyIn = False
-        if content:
-            print 'content',content
-            arrayValue = []
-            errorMsg = errorMsgCreate (readProperty ('107'), arrayValue)
-            errorList.append (errorMsg)
-
-    if errorList:
-        stat = readProperty('NOT_OK')
-        check = False
-    print errorList
-    print 'stat ',stat
+            if content:
+                arrayValue = []
+                errorMsg = create_error_message (readProperty ("BODY_INPUT_NOT_ALLOWED"), arrayValue)
+                errorList.append (errorMsg)
+    
+        if errorList:
+            errorAvailable = True
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))
-    return check,errorList,stat,BodyIn
+    print "Before return"
+    print errorAvailable
+    print errorList
+    return errorAvailable,errorList
 
-
-def investak_request_audit(userId,request,apiName):
+'''This method will store the request from InvestAK for audit purpose'''
+def investak_request_audit(userId,bodyContent,apiName):
     logger.info(readProperty("ENTERING_METHOD"))
     request_id=''
-    dateNow = datetime.now ()
-    logging = ApiHomeDict.get(apiName)[0].logging
-    print 'logging',logging
-    if (logging == readProperty ('CAPITAL_YES') and readProperty ('INVESTAK_API_AUDIT_ENABLE') == readProperty ('CAPITAL_YES')):
-        Auditobj=Audit(user_id=userId, investak_request=request,investak_request_time_stamp=dateNow)
-        Auditobj.save()
-        request_id=Auditobj.request_id
-    print 'investak_request_audit ',request
-    print 'request_id ',request_id
-
-    '''print 'dateNow ',dateNow
-    Auditobj = Audit.objects.get(investak_request_time_stamp=dateNow)
-    print 'Auditobj ', Auditobj.investak_request_time_stamp'''
+    try:
+        dateNow = datetime.now ()
+        logging = ApiHomeDict.get(apiName)[0].logging
+        if (logging == readProperty ("YES") and readProperty ('INVESTAK_API_AUDIT_ENABLE') == readProperty ("YES")):
+            Auditobj=Audit(user_id=userId, investak_request=request,investak_request_time_stamp=dateNow)
+            Auditobj.save()
+            request_id=Auditobj.request_id
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))
     return request_id
+    
 
 def api_request_audit(request_id,request,apiName,userId):
     logger.info(readProperty("ENTERING_METHOD"))
-    dateNow = datetime.now ()
-    logging=ApiHomeDict.get(apiName)[0].logging
-    if(logging==readProperty('CAPITAL_YES') and readProperty('API_TSO_AUDIT_ENABLE')==readProperty('CAPITAL_YES') and readProperty('INVESTAK_API_AUDIT_ENABLE')==readProperty('CAPITAL_YES')):
-        obj, created = Audit.objects.update_or_create (
-            request_id=request_id,
-            defaults={readProperty('API_REQUEST'): request,readProperty('API_REQUEST_TIME_STAMP'):dateNow,readProperty('USER_ID'):userId},
-        )
-    else:
-        Auditobj = Audit (user_id=userId, api_request=request, api_request_time_stamp=dateNow)
-        Auditobj.save ()
-        request_id = Auditobj.request_id   
-    print 'api_request_audit ',request
+    try:
+        dateNow = datetime.now ()
+        logging=ApiHomeDict.get(apiName)[0].logging
+        if(logging==readProperty("YES") and readProperty('API_TSO_AUDIT_ENABLE')==readProperty("YES") and readProperty('INVESTAK_API_AUDIT_ENABLE')==readProperty("YES")):
+            obj, created = Audit.objects.update_or_create (
+                request_id=request_id,
+                defaults={readProperty('API_REQUEST'): request,readProperty('API_REQUEST_TIME_STAMP'):dateNow,readProperty('USER_ID'):userId},
+            )
+        else:
+            Auditobj = Audit (user_id=userId, api_request=request, api_request_time_stamp=dateNow)
+            Auditobj.save ()
+            request_id = Auditobj.request_id   
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))
     return request_id
 
 def api_response_audit(request_id,request,apiName):
     logger.info(readProperty("ENTERING_METHOD"))
-    dateNow = datetime.now ()
-    stat= request.get (readProperty('STATUS'))
-    if stat== readProperty ('OK'):
-        api_status=readProperty ('SUCCESS')
-    else:
-        api_status = readProperty ('FAILURE')
-    print  'api_status ', api_status
-    logging = ApiHomeDict.get(apiName)[0].logging
-    if (logging == readProperty ('CAPITAL_YES') and readProperty ('INVESTAK_API_AUDIT_ENABLE') == readProperty ('CAPITAL_YES')):
-        obj, created = Audit.objects.update_or_create (
-            request_id=request_id,
-            defaults={readProperty('API_RESPONSE'): request,readProperty('API_RESPONSE_TIME_STAMP'):dateNow,readProperty('API_STATUS'):api_status},
-        )
-    print 'api_response_audit ',request
+    try:
+        dateNow = datetime.now ()
+        stat= request.get (readProperty('STATUS'))
+        if stat== readProperty ('OK'):
+            api_status=readProperty ('SUCCESS')
+        else:
+            api_status = readProperty ('FAILURE')
+        logging = ApiHomeDict.get(apiName)[0].logging
+        if (logging == readProperty ("YES") and readProperty ('INVESTAK_API_AUDIT_ENABLE') == readProperty ("YES")):
+            obj, created = Audit.objects.update_or_create (
+                request_id=request_id,
+                defaults={readProperty('API_RESPONSE'): request,readProperty('API_RESPONSE_TIME_STAMP'):dateNow,readProperty('API_STATUS'):api_status},
+            )
+        logger.info(readProperty("EXITING_METHOD"))
+    except Exception as e:
+        raise e
+
 
 def tso_response_audit(request_id,request,apiName):
     print 'request',request 
     logger.info(readProperty("ENTERING_METHOD"))
-    dateNow = datetime.now ()
-    stat = request.get(readProperty('STATUS'))
-    if stat == readProperty ('OK'):
-        tso_status = readProperty('SUCCESS')
-        dictionary=SuccessDict
-    else:
-        tso_status = readProperty('FAILURE')
-        dictionary=FailureDict
-    print  'tso_status ',tso_status
-    logging = ApiHomeDict.get(apiName)[0].logging
-    if (logging == readProperty ('CAPITAL_YES') and readProperty ('API_TSO_AUDIT_ENABLE') == readProperty ('CAPITAL_YES')):
-        obj, created = Audit.objects.update_or_create (
-            request_id=request_id,
-            defaults={readProperty('TSO_RESPONSE'): request,readProperty('TSO_RESPONSE_TIME_STAMP'):dateNow,readProperty('TSO_STATUS'):tso_status},
-        )
-    print 'tso_response_audit ',request
+    try:
+        dateNow = datetime.now ()
+        stat = request.get(readProperty('STATUS'))
+        if stat == readProperty ('OK'):
+            tso_status = readProperty('SUCCESS')
+            dictionary=SuccessDict
+        else:
+            tso_status = readProperty('FAILURE')
+            dictionary=FailureDict
+        print  'tso_status ',tso_status
+        logging = ApiHomeDict.get(apiName)[0].logging
+        if (logging == readProperty ("YES") and readProperty ('API_TSO_AUDIT_ENABLE') == readProperty ("YES")):
+            obj, created = Audit.objects.update_or_create (
+                request_id=request_id,
+                defaults={readProperty('TSO_RESPONSE'): request,readProperty('TSO_RESPONSE_TIME_STAMP'):dateNow,readProperty('TSO_STATUS'):tso_status},
+            )
+        print 'tso_response_audit ',request
+    except Exception as e:
+        raise e
     logger.info(readProperty("EXITING_METHOD"))
     return dictionary
 
@@ -2157,29 +2144,32 @@ def password_hash(password):
     return password_hash
 
 
-def send_sequest(body_content, url, authorization, user_id, tomcat_count, jKey, jData):
+def send_request(body_content, url, authorization, user_id, tomcat_count, jKey, jData):
     logger.info(readProperty("ENTERING_METHOD"))
-    if isNotBlank(body_content):
-        jsession_id = get_jsessionid(user_id)
-        tomcat_count = get_tomcat_count(tomcat_count)
-        if isNotBlank(jsession_id):
-            url = url + "?jsessionid=" + jsession_id.strip()
-        if isNotBlank(tomcat_count):
-            url = url + "." + tomcat_count.strip()
-        print "url="+url
-        values = {'jKey': jKey,
-                  'jData': jData}
-        data = urllib.urlencode(values)
-        req = urllib2.Request(url, data)
-        response = urllib2.urlopen(req)
-        the_page = response.read()
-        d = json.loads(the_page)
-        logger.info(readProperty("EXITING_METHOD"))  
-        return d
-    else:
-        resp = requests.post(url)
-        logger.info(readProperty("EXITING_METHOD"))  
-        return resp.text
+    try:
+        if isNotBlank(body_content):
+            jsession_id = get_jsessionid(user_id)
+            tomcat_count = get_tomcat_count(tomcat_count)
+            if isNotBlank(jsession_id):
+                url = url + "?jsessionid=" + jsession_id.strip()
+            if isNotBlank(tomcat_count):
+                url = url + "." + tomcat_count.strip()
+            values = {'jKey': jKey,
+                      'jData': jData}
+            data = urllib.urlencode(values)
+            req = urllib2.Request(url, data)
+            response = urllib2.urlopen(req)
+            the_page = response.read()
+            d = json.loads(the_page)
+            logger.info(readProperty("EXITING_METHOD"))  
+            return d
+        else:
+            resp = requests.post(url)
+            logger.info(readProperty("EXITING_METHOD"))  
+            return resp.text
+    except Exception as e:
+        raise e
+    logger.info(readProperty("EXITING_METHOD"))
 
 
 def get_cipher(key):
@@ -2372,22 +2362,17 @@ def isNotBlank(myString):
     return False
 
 
+'''This method will check whether the given input is in JSON format or not'''
 def checkJson(text):
     logger.info(readProperty("ENTERING_METHOD"))
-    key = '1'
-    print 'checkJson1'
+    result = False
     try:
-        print 'checkJson2'
-        print text
-        abc = json.loads(text)
-        print 'checkJson3',abc
-        logger.info(readProperty("EXITING_METHOD"))  
-        return key
+        json.loads(text)
+        result = True 
     except Exception as e:
-        print('invalid json: %s' % e)
-        key='0'
-        logger.info(readProperty("EXITING_METHOD"))  
-        return key
+        result = False
+    logger.info(readProperty("EXITING_METHOD"))  
+    return result
 
 
 def PasswordHash(jsonObject):
@@ -2401,13 +2386,16 @@ def PasswordHash(jsonObject):
     logger.info(readProperty("EXITING_METHOD"))      
     return data
     
-def sendResponse(e):  
-    logger.info(readProperty("ENTERING_METHOD"))      
-    stat = readProperty ('NOT_OK')
-    errorList = []
-    errorMsg = e
-    print errorMsg
-    errorList.append(errorMsg)
-    response_data=sendErrorRequesterror(errorList,stat)
+'''This method is used to create error response'''
+def createErrorResponse(e):  
+    logger.info(readProperty("ENTERING_METHOD"))  
+    try:    
+        stat = readProperty ("NOT_OK")
+        errorList = []
+        errorMsg = e
+        errorList.append(errorMsg)
+        response_data=errorResponse(errorList,stat)
+    except Exception as e:
+        raise e        
     logger.info(readProperty("EXITING_METHOD"))  
-    return response_data    
+    return response_data
