@@ -34,8 +34,8 @@ ListDict = AllList[5]
 logger = logging.getLogger('restapp.views.py')
 
 prop = Property ()
-#prop_obj = prop.load_property_files('D:\\InvestAK\\26-12-2016\\investak.properties')  #hari
-prop_obj = prop.load_property_files ('E:\\Investak\\investak\\investak.properties')  # ranjith
+prop_obj = prop.load_property_files('D:\\InvestAK\\26-12-2016\\investak.properties')  #hari
+#prop_obj = prop.load_property_files ('E:\\Investak\\investak\\investak.properties')  # ranjith
 
 
 ''' This method will read the configuration values from property file'''
@@ -52,8 +52,7 @@ def readProperty(name):
 '''Provides you with initial token for Login '''
 @api_view([readProperty('METHOD_TYPE')])
 def get_initial_token(request):
-    logger.info(readProperty('112'))
-    
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty('METHOD_TYPE'):
             content = request.body
@@ -65,12 +64,11 @@ def get_initial_token(request):
             userId=''
             request_id = investak_request_audit (userId, jsonObject, apiName)
             dataArray = validation_CheckInput (content, apiName, ApiHomeDict)
-            data = dataArray[0]
-            
+            data = dataArray[0]            
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -79,7 +77,7 @@ def get_initial_token(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit(request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response(data)
             print 'after validate '
             request_id=api_request_audit(request_id, data, apiName,userId)
@@ -122,11 +120,10 @@ def get_initial_token(request):
                 output = {readProperty ('STATUS'): stat,readProperty ('ERROR'): emsg}
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
             
     except Exception as e:
-        print "exception is",e
         logger.exception(e)
         err=str(e)
         output=sendResponse(err)
@@ -137,7 +134,7 @@ def get_initial_token(request):
 '''First step in login'''
 @api_view([readProperty('METHOD_TYPE')])
 def get_login_2fa(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("LOGIN_2FA"))[0].url
@@ -158,7 +155,7 @@ def get_login_2fa(request):
             BodyIn=dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn==True:
                 jsonObject = json.loads (content)
@@ -166,7 +163,7 @@ def get_login_2fa(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
 
             print 'after validate'
@@ -182,7 +179,7 @@ def get_login_2fa(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)       
         
     
@@ -198,7 +195,7 @@ def get_login_2fa(request):
 '''Provide you with pre-authentication key for encryption'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_login(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("GET_PRE_AUTHENTICATION_KEY"))[0].url
@@ -217,7 +214,7 @@ def get_login(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -225,7 +222,7 @@ def get_login(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
 
             print 'after validate '
@@ -242,7 +239,7 @@ def get_login(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -258,7 +255,7 @@ def get_login(request):
 '''Provide you with pre-authentication key for encryption'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_normal_login(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("GET_PRE_AUTHENTICATION_KEY"))[0].url
@@ -278,7 +275,7 @@ def get_normal_login(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -286,7 +283,7 @@ def get_normal_login(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -311,7 +308,7 @@ def get_normal_login(request):
                 raise Exception(readProperty('110'))
             decrypted_json = json.loads(decrypted_data)
             print decrypted_json
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
         
     except Exception as e:
@@ -326,7 +323,7 @@ def get_normal_login(request):
 '''Gives you information about client enabled data'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_default_login(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("DEFAULT_LOGIN"))[0].url
@@ -345,7 +342,7 @@ def get_default_login(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -353,7 +350,7 @@ def get_default_login(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -370,7 +367,7 @@ def get_default_login(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
         
     except Exception as e:
@@ -384,7 +381,7 @@ def get_default_login(request):
 '''Authenticates the user with password'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_valid_pwd(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("VALID_PASSWORD"))[0].url
@@ -403,7 +400,7 @@ def get_valid_pwd(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -411,7 +408,7 @@ def get_valid_pwd(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit(request_id,data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response(data)
     
             data = PasswordHash(data)
@@ -430,7 +427,7 @@ def get_valid_pwd(request):
             dictionary=tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName, dictionary)  #manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
         
     except Exception as e:
@@ -444,7 +441,7 @@ def get_valid_pwd(request):
 '''Authenticates the answers in 2FA Q&A mode'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_valid_ans(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("VALID_ANSWER"))[0].url
@@ -464,7 +461,7 @@ def get_valid_ans(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -472,7 +469,7 @@ def get_valid_ans(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -511,7 +508,7 @@ def get_valid_ans(request):
             print 'output',decrypted_json   
             output = validation_and_manipulation (decrypted_json, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, decrypted_json,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(decrypted_json)
         
     except Exception as e:
@@ -526,7 +523,7 @@ def get_valid_ans(request):
 '''Provides you with account details'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_account_info(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("ACCOUNT_INFO"))[0].url
@@ -546,7 +543,7 @@ def get_account_info(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -554,7 +551,7 @@ def get_account_info(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -571,7 +568,7 @@ def get_account_info(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
         
     except Exception as e:
@@ -585,14 +582,14 @@ def get_account_info(request):
 
 @api_view([readProperty ('METHOD_TYPE')])
 def get_login_by_pass(request):
-    logger.info(readProperty('112'))
-    logger.info(readProperty('113'))
+    logger.info(readProperty("ENTERING_METHOD"))
+    logger.info(readProperty("EXITING_METHOD"))
     return ''
 
 '''Gives retention types for the particular exchange'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_load_retention_type(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("LOAD_RETENSION_TYPE"))[0].url
@@ -611,7 +608,7 @@ def get_load_retention_type(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -619,7 +616,7 @@ def get_load_retention_type(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -636,7 +633,7 @@ def get_load_retention_type(request):
             dictionary = tso_response_audit (request_id, output)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
         
     except Exception as e:
@@ -651,7 +648,7 @@ def get_load_retention_type(request):
 '''Check circuit limt for the order price'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_check_crkt_price_range(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:  
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("CHECK_CORRECT_PRICE_RANGE"))[0].url
@@ -670,7 +667,7 @@ def get_check_crkt_price_range(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -678,7 +675,7 @@ def get_check_crkt_price_range(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -695,7 +692,7 @@ def get_check_crkt_price_range(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -710,7 +707,7 @@ def get_check_crkt_price_range(request):
 '''GTD validations are done if retention is selected '''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_validate_GTD(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("VALIDATE_GTD"))[0].url
@@ -729,7 +726,7 @@ def get_validate_GTD(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -737,7 +734,7 @@ def get_validate_GTD(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -754,7 +751,7 @@ def get_validate_GTD(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
         
     except Exception as e:
@@ -768,7 +765,7 @@ def get_validate_GTD(request):
 '''Validates Stop loss price'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_validate_SLM_price(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("VALIDATE_SLM_PRICE"))[0].url
@@ -787,7 +784,7 @@ def get_validate_SLM_price(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -795,7 +792,7 @@ def get_validate_SLM_price(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -812,7 +809,7 @@ def get_validate_SLM_price(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -827,7 +824,7 @@ def get_validate_SLM_price(request):
 '''Allows you to place order for selected scrip'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_place_order(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("PLACE_ORDER"))[0].url
@@ -846,7 +843,7 @@ def get_place_order(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -854,7 +851,7 @@ def get_place_order(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -871,7 +868,7 @@ def get_place_order(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -885,7 +882,7 @@ def get_place_order(request):
 '''Allows you to view the placed orders and their status'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_order_book(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("ORDER_BOOK"))[0].url
@@ -904,14 +901,14 @@ def get_order_book(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -928,7 +925,7 @@ def get_order_book(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -943,7 +940,7 @@ def get_order_book(request):
 '''Allows you to modify open orders'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_modify_order(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("MODIFY_ORDER"))[0].url
@@ -962,14 +959,14 @@ def get_modify_order(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -986,7 +983,7 @@ def get_modify_order(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -1000,7 +997,7 @@ def get_modify_order(request):
 '''Allows you to cancel an open order'''
 @api_view([readProperty('METHOD_TYPE')])
 def get_cancel_order(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("CANCEL_ORDER"))[0].url
@@ -1019,7 +1016,7 @@ def get_cancel_order(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -1027,7 +1024,7 @@ def get_cancel_order(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -1044,7 +1041,7 @@ def get_cancel_order(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -1058,7 +1055,7 @@ def get_cancel_order(request):
 '''Allows you to view the order history for the Order.'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_order_history(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("ORDER_HISTORY"))[0].url
@@ -1077,7 +1074,7 @@ def get_order_history(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -1085,7 +1082,7 @@ def get_order_history(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -1102,7 +1099,7 @@ def get_order_history(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -1116,7 +1113,7 @@ def get_order_history(request):
 '''Allows you to view trade details'''
 @api_view([readProperty('METHOD_TYPE')])
 def get_trade_book(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("TRADE_BOOK"))[0].url
@@ -1135,7 +1132,7 @@ def get_trade_book(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -1143,7 +1140,7 @@ def get_trade_book(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -1160,7 +1157,7 @@ def get_trade_book(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -1174,7 +1171,7 @@ def get_trade_book(request):
 '''This Allows user to view the holdings'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_holding(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("HOLDING"))[0].url
@@ -1193,7 +1190,7 @@ def get_holding(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -1201,7 +1198,7 @@ def get_holding(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -1218,7 +1215,7 @@ def get_holding(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -1233,7 +1230,7 @@ def get_holding(request):
 '''Allows you to view segment w ise RMS limits'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_limits(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("LIMITS"))[0].url
@@ -1252,7 +1249,7 @@ def get_limits(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -1260,7 +1257,7 @@ def get_limits(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -1277,7 +1274,7 @@ def get_limits(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -1292,7 +1289,7 @@ def get_limits(request):
 '''Provides you w ith user details'''
 @api_view([readProperty('METHOD_TYPE')])
 def get_user_profile(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("USER_PROFILE"))[0].url
@@ -1311,7 +1308,7 @@ def get_user_profile(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -1319,7 +1316,7 @@ def get_user_profile(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -1336,7 +1333,7 @@ def get_user_profile(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -1351,7 +1348,7 @@ def get_user_profile(request):
 '''Provides you with account details'''
 @api_view([readProperty('METHOD_TYPE')])
 def get_account_info(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method ==readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("ACCOUNT_INFO"))[0].url
@@ -1370,7 +1367,7 @@ def get_account_info(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -1378,7 +1375,7 @@ def get_account_info(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -1395,7 +1392,7 @@ def get_account_info(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
         
     except Exception as e:
@@ -1409,7 +1406,7 @@ def get_account_info(request):
 '''Loads open order to set alerts based on trade.'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_open_orders(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("OPEN_ORDERS"))[0].url
@@ -1428,7 +1425,7 @@ def get_open_orders(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -1436,7 +1433,7 @@ def get_open_orders(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -1454,7 +1451,7 @@ def get_open_orders(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
         
     except Exception as e:
@@ -1470,7 +1467,7 @@ def get_open_orders(request):
 '''List of End of the Day holdings for clients'''
 @api_view([readProperty('METHOD_TYPE')])
 def get_bo_holdings(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method ==readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("BO_HOLDINGS"))[0].url
@@ -1489,7 +1486,7 @@ def get_bo_holdings(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -1497,7 +1494,7 @@ def get_bo_holdings(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -1514,7 +1511,7 @@ def get_bo_holdings(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
     
     except Exception as e:
@@ -1529,7 +1526,7 @@ def get_bo_holdings(request):
 '''List of End of the day underlying Trades for holdings for the clients'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_bo_Ul_Trades(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("BO_UI_TRADES"))[0].url
@@ -1548,7 +1545,7 @@ def get_bo_Ul_Trades(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -1556,7 +1553,7 @@ def get_bo_Ul_Trades(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -1573,7 +1570,7 @@ def get_bo_Ul_Trades(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
         
     except Exception as e:
@@ -1588,7 +1585,7 @@ def get_bo_Ul_Trades(request):
 '''Allows you to logout from the application'''
 @api_view([readProperty ('METHOD_TYPE')])
 def get_logout(request):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         if request.method == readProperty ('METHOD_TYPE'):
             url = ApiHomeDict.get(readProperty("LOG_OUT"))[0].url
@@ -1607,7 +1604,7 @@ def get_logout(request):
             BodyIn = dataArray[1]
             if 'stat' in data:
                 api_response_audit (request_id, data, apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
             if BodyIn == True:
                 jsonObject = json.loads (content)
@@ -1615,7 +1612,7 @@ def get_logout(request):
             print 'data ', data
             if 'stat' in data:
                 api_response_audit (request_id, data,apiName)
-                logger.info(readProperty('113'))
+                logger.info(readProperty("EXITING_METHOD"))
                 return Response (data)
     
             print 'after validate '
@@ -1632,7 +1629,7 @@ def get_logout(request):
             dictionary = tso_response_audit (request_id, output,apiName)
             output = validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             api_response_audit (request_id, output,apiName)
-            logger.info(readProperty('113'))
+            logger.info(readProperty("EXITING_METHOD"))
             return Response(output)
         
     except Exception as e:
@@ -1645,46 +1642,46 @@ def get_logout(request):
 
 
 def validation_and_manipulation(jsonObject,apiName,Dict):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     data={}
     if not data:
         data = validation_Parameter (jsonObject, apiName, Dict)
-    if not data:
+    elif not data:
         jsonObject = manipulation_Default (jsonObject, apiName, Dict)
         data = validation_All (jsonObject, apiName, Dict)#see
-    if not data:
+    elif not data:
         jsonObject = manipulation_Transformation(jsonObject, apiName, Dict)
         data=jsonObject
         print 'Actual Data'
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return data
 
 
 def manipulation_Transformation(jsonObject, apiName, dict):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     if jsonObject and  not dict==FailureDict and not dict==JsonDict:
         for param, value in jsonObject.items():
             transformation= dict.get(apiName).get(param)[0].transformation
             value = transformationValidation (transformation, value)
             jsonObject[param] = value
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return jsonObject
 
 
 def manipulation_Default(jsonObject, apiName, dict):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     if jsonObject and dict==InputDict:
         for param, value in jsonObject.items():
 
             default= dict.get(apiName).get(param)[0].default
             value = defaultValidation (default, value)
             jsonObject[param]=value
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return jsonObject
 
 
 def transformationValidation(transformation,Paramvalue):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     if isBlank(transformation):
         pass
     else:
@@ -1692,21 +1689,21 @@ def transformationValidation(transformation,Paramvalue):
             transformation=ListDict.get(transformation).get(Paramvalue)[0].targetValue
             Paramvalue=transformation
         print 'transformation ', Paramvalue
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return Paramvalue
 
 def defaultValidation(default,Paramvalue):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     if isBlank(default):
         pass
     elif(isBlank(Paramvalue)):
         Paramvalue=default
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return Paramvalue
 
 
 def validation_CheckInput(jsonObject,apiName,Dict):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     data = {}
     BodyIn=True
     print 'validation_CheckInput'
@@ -1723,12 +1720,12 @@ def validation_CheckInput(jsonObject,apiName,Dict):
         print 'BodyIn',BodyIn
         if (checkParam == False):
             data = sendErrorRequesterror (errorParam, stat)
-    logger.info(readProperty('113'))        
+    logger.info(readProperty("EXITING_METHOD"))        
     return  data,BodyIn
 
 
 def validation_Parameter(jsonObject,apiName,Dict):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     data = {}
     if jsonObject:
         Param = CheckAllParameter (jsonObject, apiName, Dict)
@@ -1740,12 +1737,12 @@ def validation_Parameter(jsonObject,apiName,Dict):
         print stat
         if (checkParam == False):
             data = sendErrorRequesterror (errorParam, stat)
-    logger.info(readProperty('113'))        
+    logger.info(readProperty("EXITING_METHOD"))        
     return  data
 
 
 def validation_All(jsonObject,apiName,Dict):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     data = {}
     if jsonObject:
         dataType = checkAll (jsonObject, apiName, Dict)
@@ -1754,11 +1751,11 @@ def validation_All(jsonObject,apiName,Dict):
         stat = dataType[2]
         if (checkType == False):
             data = sendErrorRequesterror (errorDataType, stat)
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return  data
 
 def sendErrorRequesterror(errorList,stat):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     i=len(errorList)
     print i
     response_data = {}
@@ -1769,11 +1766,11 @@ def sendErrorRequesterror(errorList,stat):
         response_data[readProperty('STATUS')] = stat
 
     print 'response_data',response_data
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return response_data
 
 def checkAll(content,ApiName,dict):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     check=True
     stat = ''
     errorMsg=''
@@ -1800,13 +1797,13 @@ def checkAll(content,ApiName,dict):
         check = False
         stat  =readProperty('NOT_OK')
     print errorListAll
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return check,errorListAll,stat
 
 
 
 def ValidValuesValidation(validValues,paramValue,param,dataType):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     errorList = []
     errorMsg=''
     if not (dataType == readProperty('JSON')):
@@ -1832,11 +1829,11 @@ def ValidValuesValidation(validValues,paramValue,param,dataType):
     print 'errorList validVal ',errorList
     if errorMsg:
         errorList.append (errorMsg)
-    logger.info(readProperty('113'))    
+    logger.info(readProperty("EXITING_METHOD"))    
     return errorList
 
 def errorMsgCreate(string,arrayValue):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     print 'string',string
     for index, item in enumerate (arrayValue):
         index = str(index)
@@ -1845,11 +1842,11 @@ def errorMsgCreate(string,arrayValue):
         newstr = string.replace ('['+index+']',item)
         string = newstr
         print string
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return  string
 
 def optionalValidation(optional, Paramvalue, param):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     errorList = []
     errorMsg = ''
     if isBlank(optional):
@@ -1867,11 +1864,11 @@ def optionalValidation(optional, Paramvalue, param):
 
     if errorMsg:
         errorList.append (errorMsg)
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return errorList
 
 def dataTypeValidation(dataType,Paramvalue,param,dict,validValues):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     errorList = []
     errorMsg=''
     if (dataType == readProperty('STRING')):
@@ -1965,31 +1962,31 @@ def dataTypeValidation(dataType,Paramvalue,param,dict,validValues):
 
     if errorMsg:
         errorList.append (errorMsg)
-    logger.info(readProperty('113'))    
+    logger.info(readProperty("EXITING_METHOD"))    
     return errorList
 
 
 def exist_Url(path):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     r = requests.head (path)
 
     print r.status_code
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return r.status_code == requests.codes.ok
 
 
 def validateDate(date_text):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     try:
         time.strptime(date_text, '%m/%d/%Y/%w/%H:%M:%S')
         Date = True
     except ValueError:
         Date = False
-    logger.info(readProperty('113'))    
+    logger.info(readProperty("EXITING_METHOD"))    
     return Date
 
 def CheckAllParameter(content,ApiName,dict):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     check=True
     #print dict.get(ApiName).get(ApiName)[0].parameter
     errorList=[]
@@ -2026,11 +2023,11 @@ def CheckAllParameter(content,ApiName,dict):
         check = False
     print errorList
     print 'stat ',stat
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return check,errorList,stat
 
 def CheckInputBody(content,ApiName,dict):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     print 'CheckInputBody'
     check=True
     print dict.get(ApiName)[0].inputApi
@@ -2071,12 +2068,12 @@ def CheckInputBody(content,ApiName,dict):
         check = False
     print errorList
     print 'stat ',stat
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return check,errorList,stat,BodyIn
 
 
 def investak_request_audit(userId,request,apiName):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     request_id=''
     dateNow = datetime.now ()
     logging = ApiHomeDict.get(apiName)[0].logging
@@ -2091,11 +2088,11 @@ def investak_request_audit(userId,request,apiName):
     '''print 'dateNow ',dateNow
     Auditobj = Audit.objects.get(investak_request_time_stamp=dateNow)
     print 'Auditobj ', Auditobj.investak_request_time_stamp'''
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return request_id
 
 def api_request_audit(request_id,request,apiName,userId):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     dateNow = datetime.now ()
     logging=ApiHomeDict.get(apiName)[0].logging
     if(logging==readProperty('CAPITAL_YES') and readProperty('API_TSO_AUDIT_ENABLE')==readProperty('CAPITAL_YES') and readProperty('INVESTAK_API_AUDIT_ENABLE')==readProperty('CAPITAL_YES')):
@@ -2108,11 +2105,11 @@ def api_request_audit(request_id,request,apiName,userId):
         Auditobj.save ()
         request_id = Auditobj.request_id   
     print 'api_request_audit ',request
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return request_id
 
 def api_response_audit(request_id,request,apiName):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     dateNow = datetime.now ()
     stat= request.get (readProperty('STATUS'))
     if stat== readProperty ('OK'):
@@ -2130,7 +2127,7 @@ def api_response_audit(request_id,request,apiName):
 
 def tso_response_audit(request_id,request,apiName):
     print 'request',request 
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     dateNow = datetime.now ()
     stat = request.get(readProperty('STATUS'))
     if stat == readProperty ('OK'):
@@ -2147,21 +2144,21 @@ def tso_response_audit(request_id,request,apiName):
             defaults={readProperty('TSO_RESPONSE'): request,readProperty('TSO_RESPONSE_TIME_STAMP'):dateNow,readProperty('TSO_STATUS'):tso_status},
         )
     print 'tso_response_audit ',request
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return dictionary
 
 
 def password_hash(password):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     for num in range(0, 999):
         password = hashlib.sha256(password).digest()
     password_hash = hashlib.sha256(password).hexdigest()
-    logger.info(readProperty('113'))
+    logger.info(readProperty("EXITING_METHOD"))
     return password_hash
 
 
 def send_sequest(body_content, url, authorization, user_id, tomcat_count, jKey, jData):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     if isNotBlank(body_content):
         jsession_id = get_jsessionid(user_id)
         tomcat_count = get_tomcat_count(tomcat_count)
@@ -2177,34 +2174,34 @@ def send_sequest(body_content, url, authorization, user_id, tomcat_count, jKey, 
         response = urllib2.urlopen(req)
         the_page = response.read()
         d = json.loads(the_page)
-        logger.info(readProperty('113'))  
+        logger.info(readProperty("EXITING_METHOD"))  
         return d
     else:
         resp = requests.post(url)
-        logger.info(readProperty('113'))  
+        logger.info(readProperty("EXITING_METHOD"))  
         return resp.text
 
 
 def get_cipher(key):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     cipher = PKCS1_v1_5.new(key)
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return cipher
 
 
 def encrypt_block(key, data, start, end):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     data = data[start:end]
     cipher = get_cipher(key)
     encrypted_data = cipher.encrypt(data)
     encoded_data = b64_encode(encrypted_data)
     replace_data = replace_text(encoded_data, "\n", "")
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return replace_data
 
 
 def encrypt(data, key, key_size):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     buffer = ""
     number_of_bytes = ((int(readProperty ('KEY_SIZE')) / int(readProperty('BYTE_BOUNDARY'))) - int(readProperty('BYTE_DIFFERENCE')))
     start = 0
@@ -2230,26 +2227,26 @@ def encrypt(data, key, key_size):
         buffer = append_data(buffer, "\n")
     buffer = b64_encode(buffer)
     buffer = replace_text(buffer, "\n", "")
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return buffer
 
 
 def replace_text(orginal_data, old_text, new_text):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     orginal_data = orginal_data.replace(old_text, new_text)
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return orginal_data
 
 
 def append_data(original_text, append_text):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     original_text = original_text + append_text
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return original_text
 
 
 def decrypt(data, private_key):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     data = b64_decode(data)
     data = unicode(data, "utf-8")
     data = data.strip().split("\n")
@@ -2259,67 +2256,67 @@ def decrypt(data, private_key):
         cipher = get_cipher(private_key)
         temp_data = cipher.decrypt(temp_data, 'utf-8')
         final_data = append_data(final_data, temp_data)
-    logger.info(readProperty('113'))      
+    logger.info(readProperty("EXITING_METHOD"))      
     return final_data
 
 
 def b64_decode(data):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     decoded_data = base64.b64decode(data)
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return decoded_data
 
 
 def b64_encode(data):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     encoded_data = data.encode("base64")
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return encoded_data
 
 
 def generate_key_pair():
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     random_generator = Random.new().read
     #print "Key size",readProperty('KEY_SIZE')
     key = RSA.generate(int(readProperty('KEY_SIZE')), random_generator)
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return key
 
 
 def get_public_key_pem(key):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     publicKey2_PEM = key.publickey().exportKey("PEM")
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return publicKey2_PEM
 
 
 def get_private_key_pem(key):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     privateKey2_PEM = key.exportKey()
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return privateKey2_PEM
 
 
 def import_key(key_pem):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     key = RSA.importKey(key_pem)
     # cipher = PKCS1_v1_5.new(key)
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return key
 
 
 def get_jkey(decoded_public_key):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     hash_object = hashlib.sha256(decoded_public_key)
     jKey = hash_object.hexdigest()
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return jKey
 
 
 def get_jsessionid(user_id):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     jSessionId = b64_encode(user_id)
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return jSessionId
 
 
@@ -2354,29 +2351,29 @@ def transformation(data, transform_value):
 
 
 def isBlank(myString):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     if myString and (part.strip() for part in myString):
         # myString is not None AND myString is not empty or blank
-        logger.info(readProperty('113'))  
+        logger.info(readProperty("EXITING_METHOD"))  
         return False
     # myString is None OR myString is empty or blank
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return True
 
 
 def isNotBlank(myString):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     if myString and (part.strip() for part in myString):
         # myString is not None AND myString is not empty or blank
-        logger.info(readProperty('113'))  
+        logger.info(readProperty("EXITING_METHOD"))  
         return True
     # myString is None OR myString is empty or blank
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return False
 
 
 def checkJson(text):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     key = '1'
     print 'checkJson1'
     try:
@@ -2384,33 +2381,33 @@ def checkJson(text):
         print text
         abc = json.loads(text)
         print 'checkJson3',abc
-        logger.info(readProperty('113'))  
+        logger.info(readProperty("EXITING_METHOD"))  
         return key
     except Exception as e:
         print('invalid json: %s' % e)
         key='0'
-        logger.info(readProperty('113'))  
+        logger.info(readProperty("EXITING_METHOD"))  
         return key
 
 
 def PasswordHash(jsonObject):
-    logger.info(readProperty('112'))
+    logger.info(readProperty("ENTERING_METHOD"))
     data={}
     for key in jsonObject:
         value = jsonObject[key]
         if key == readProperty ('PASSWORD'):
             value = password_hash (value)
         data[key] = value
-    logger.info(readProperty('113'))      
+    logger.info(readProperty("EXITING_METHOD"))      
     return data
     
 def sendResponse(e):  
-    logger.info(readProperty('112'))      
+    logger.info(readProperty("ENTERING_METHOD"))      
     stat = readProperty ('NOT_OK')
     errorList = []
     errorMsg = e
     print errorMsg
     errorList.append(errorMsg)
     response_data=sendErrorRequesterror(errorList,stat)
-    logger.info(readProperty('113'))  
+    logger.info(readProperty("EXITING_METHOD"))  
     return response_data    
