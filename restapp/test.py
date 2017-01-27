@@ -1,4 +1,21 @@
 from properties.p import Property
+import json
+output=[{u'Status': u'rejected', u'stat': u'Ok', u'Nstordno': u'170126000000002', u'Exchange': u'BSE', u'Symbol': u'500477', u'ExchSeg': u'bse_cm', u'Trsym': u'ASHOKLEY'}, {u'Status': u'rejected', u'stat': u'Ok', u'Nstordno': u'170126000000001', u'Exchange': u'BSE', u'Symbol': u'500477', u'ExchSeg': u'bse_cm', u'Trsym': u'ASHOKLEY'}]
+#output={'Status': 'rejected'}
+ #find json array
+if type(output) is list:
+    print 'list'
+    print len(output)
+    for dict in output:
+        print dict
+else:
+    print 'no list it is dict'
+# if returns true, then JSON Array
+#print 'list',isintance(output, list)
+
+# if returns true, then JSON Object.
+#print 'dict',isintance(output, dict)
+
 
 
 content={u'stat': u'Not_Ok', u'Emsg': u'Session Expired'}
