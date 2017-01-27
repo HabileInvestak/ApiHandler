@@ -40,7 +40,7 @@ LOGGING = {
         'default': {
             'level':'DEBUG',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': 'E:\\Investak\\investak\\logger.log',
+            'filename': 'D:\\InvestAK\\26-12-2016\\logger.log',
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'standard',
@@ -48,7 +48,7 @@ LOGGING = {
         'request_handler': {
             'level':'DEBUG',
             'class':'logging.handlers.RotatingFileHandler',
-            'filename': 'E:\\Investak\\investak\\django_request.log',
+            'filename': 'D:\\InvestAK\\26-12-2016\\django_request.log',
             'maxBytes': 1024*1024*5, # 5 MB
             'backupCount': 5,
             'formatter':'standard',
@@ -121,10 +121,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'investak_api_handler',
         'USER': 'postgres',
-        'PASSWORD': 'password',
+        'PASSWORD': 'root',
         'HOST': '127.0.0.1',
-        'PORT': '5432',
-
+        'PORT': '3309',
     }
 }
 
