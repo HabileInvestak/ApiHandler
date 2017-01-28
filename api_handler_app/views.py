@@ -18,8 +18,8 @@ import time
 from Crypto.PublicKey import RSA
 from Crypto import Random
 from Crypto.Cipher import PKCS1_v1_5
-from rest_example.wsgi import ReturnAllDict
-from restapp.models import Audit
+from api_handler.wsgi import ReturnAllDict
+from api_handler_app.models import Audit
 
 e = ReturnAllDict()
 AllList = e.returnDict()
@@ -31,23 +31,13 @@ JsonDict = AllList[4]
 ListDict = AllList[5]
 
 
-logger = logging.getLogger('restapp.views.py')
+logger = logging.getLogger('api_handler_app.views.py')
 
 prop = Property ()
 #prop_obj = prop.load_property_files('D:\\InvestAK\\26-12-2016\\investak.properties')  #hari
 prop_obj = prop.load_property_files ('E:\\Investak\\investak\\investak.properties')  # ranjith
 
 
-''' This method will read the configuration values from property file'''
-def readProperty(name):
-    try:
-        data=prop_obj.get(name)
-        return data
-    except Exception as e:
-        logger.exception(e)
-        raise Exception(e)
-    
-    
 '''Provides you with initial token for Login '''
 @api_view([readProperty("METHOD_TYPE")])
 def get_initial_token(request):
@@ -2297,3 +2287,13 @@ def createErrorResponse(e):
         raise e        
     logger.info(readProperty("EXITING_METHOD"))  
     return response_data
+
+
+''' This method will read the configuration values from property file'''
+def readProperty(name):
+    try:
+        data=prop_obj.get(name)
+        return data
+    except Exception as e:
+        logger.exception(e)
+        raise Exception(e)
