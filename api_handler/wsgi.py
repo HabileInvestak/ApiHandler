@@ -8,7 +8,7 @@ https://docs.djangoproject.com/en/1.10/howto/deployment/wsgi/
 """
 
 import os
-from restapp.ExcelSheet import *
+from api_handler_app.ExcelSheet import *
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rest_example.settings")
