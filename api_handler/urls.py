@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
-from restapp import views
+from api_handler_app import views
 admin.autodiscover()
 
 
