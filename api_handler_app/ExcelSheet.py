@@ -1,18 +1,15 @@
 import xlrd
 from xlrd import open_workbook
 import json, ast
-
+from utils import UtilClass 
 from ExcelReadClass import *
 
 
-#wb = open_workbook ("D:\\InvestAK\\26-12-2016\\Habile_Investak_API_Dictionary.xlsx") #hari
-wb = open_workbook ("E:\\Investak\\investak\\Habile_Investak_API_Dictionary_1.1_20170119.xlsx") #ranjith
-
-# API
 class ExcelSheetApi():
 
     def apiHomeDict(self):
-
+        utilClass=UtilClass()
+        wb = open_workbook (utilClass.readProperty("API_DICTIONARY_EXCEL"))
         sheet = wb.sheet_by_index(2)
         rows=sheet.nrows
         colmns=sheet.ncols
@@ -55,6 +52,8 @@ class ExcelSheetApi():
 class ExcelSheetInput():
 
     def inputDict(self):
+        utilClass=UtilClass()
+        wb = open_workbook (utilClass.readProperty("API_DICTIONARY_EXCEL"))
         sheet = wb.sheet_by_index(4)
         rows=sheet.nrows
         colmns=sheet.ncols
@@ -103,6 +102,8 @@ class ExcelSheetInput():
 class ExcelSheetSuccess():
 
     def successDict(self):
+        utilClass=UtilClass()
+        wb = open_workbook (utilClass.readProperty("API_DICTIONARY_EXCEL"))
         TempParamDict={}
         sheet = wb.sheet_by_index(5)
         rows=sheet.nrows
@@ -140,6 +141,8 @@ class ExcelSheetSuccess():
 class ExcelSheetFailure():
 
     def failureDict(self):
+        utilClass=UtilClass()
+        wb = open_workbook (utilClass.readProperty("API_DICTIONARY_EXCEL"))
         TempParamDict={}
         sheet = wb.sheet_by_index(6)
         rows=sheet.nrows
@@ -174,6 +177,8 @@ class ExcelSheetFailure():
 class ExcelSheetJson():
 
     def jsonDict(self):
+        utilClass=UtilClass()
+        wb = open_workbook (utilClass.readProperty("API_DICTIONARY_EXCEL"))
         TempParamDict={}
         sheet = wb.sheet_by_index(7)
         rows=sheet.nrows
@@ -209,6 +214,8 @@ class ExcelSheetJson():
 class ExcelSheetLists():
 
     def listDict(self):
+        utilClass=UtilClass()
+        wb = open_workbook (utilClass.readProperty("API_DICTIONARY_EXCEL"))
         TempParamDict={}
         sheet = wb.sheet_by_index(8)
         rows=sheet.nrows
@@ -235,5 +242,3 @@ class ExcelSheetLists():
                     ListDict[listName].update({sourceValue: TempParamDict[sourceValue]})
 
         return ListDict
-#print ListDict
-
