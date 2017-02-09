@@ -14,7 +14,7 @@ urlpatterns = [
    url(r'^account_info/',views.get_account_info),
    url(r'^default_login/',views.get_default_login),
    url(r'^normal_login/',views.get_normal_login),
-   #surl(r'^login_mode/', views.get_login_mode),
+   url(r'^login_mode/', views.get_login_mode),
    url(r'^login_by_pass/', views.get_login_by_pass),
    url(r'^load_retention_type/', views.get_load_retention_type),
    url(r'^check_crkt_price_range/', views.get_check_crkt_price_range),

@@ -11,9 +11,8 @@ import os
 from api_handler_app.ExcelSheet import *
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rest_example.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api_handler.settings")
 application = get_wsgi_application()
-
 a = ExcelSheetApi()
 i = ExcelSheetInput()
 s = ExcelSheetSuccess()
@@ -26,11 +25,9 @@ SuccessDict = s.successDict()
 FailureDict = f.failureDict()
 JsonDict = j.jsonDict()
 ListDict = l.listDict()
-
 ListOfDict=[ApiHomeDict,InputDict,SuccessDict,FailureDict,JsonDict,ListDict]
-#print ListOfDict
-print "call Loading dictioanry from excel once deployment"
+
 class ReturnAllDict:
     def returnDict(self):
-        #print "Inside function ",ApiHomeDict
+        print "call Loading dictioanry from excel once deployment"
         return ListOfDict
