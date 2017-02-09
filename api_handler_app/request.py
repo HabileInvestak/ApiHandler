@@ -12,7 +12,6 @@ from Crypto import Random
 from Crypto.Cipher import PKCS1_v1_5
 
 
-
 from utils import UtilClass
 
 logger = logging.getLogger('api_handler_app.request.py')

@@ -4,7 +4,6 @@ import logging
 import json
 import hashlib
 
-
 logger = logging.getLogger('api_handler_app.utils.py')
 prop=Property()
 prop_obj = prop.load_property_files('D:\\InvestAK\\26-12-2016\\investak.properties')

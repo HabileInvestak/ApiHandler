@@ -1,5 +1,6 @@
 class ApiClass(object):
 
+
    def __init__(self, hashApi, source,subject,ch,apiName,description,sourceUrl,url,logging,inputApi,inputEncryption,resonseEncryption,notes,inputSample):
       self.hashApi = hashApi
       self.source = source

@@ -9,6 +9,7 @@ from pip.download import is_url
 
 logger = logging.getLogger('api_handler_app.validate.py')
 
+
 class Validate():
     
     '''This method used to check  mandatory validation'''

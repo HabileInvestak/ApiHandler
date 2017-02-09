@@ -10,6 +10,7 @@ if type(output) is list:
         print dict
 else:
     print 'no list it is dict'
+
 # if returns true, then JSON Array
 #print 'list',isintance(output, list)
 
