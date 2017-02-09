@@ -78,7 +78,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'restapp'
+    'api_handler_app'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -92,7 +92,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
-ROOT_URLCONF = 'rest_example.urls'
+ROOT_URLCONF = 'api_handler.urls'
 
 TEMPLATES = [
     {
@@ -110,7 +110,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'rest_example.wsgi.application'
+WSGI_APPLICATION = 'api_handler.wsgi.application'
 
 
 # Database
