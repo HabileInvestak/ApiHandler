@@ -21,6 +21,7 @@ urlpatterns = [
    url(r'^validate_GTD/', views.get_validate_GTD),
    url(r'^validate_SLM_price/', views.get_validate_SLM_price),
    url(r'^place_order/', views.get_place_order),
+   url(r'^check_transaction_password/', views.get_check_transaction_password),
    url(r'^order_book/', views.get_order_book),
    url(r'^modify_order/', views.get_modify_order),
    url(r'^cancel_order/', views.get_cancel_order),
