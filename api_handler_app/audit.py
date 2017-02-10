@@ -1,5 +1,6 @@
 from utils import UtilClass
 from datetime import datetime
+import json
 
 
 from api_handler_app.models import Audit
@@ -61,11 +62,14 @@ class AuditTrial():
         #logger.info(utilClass.readProperty("ENTERING_METHOD"))
         try:
             dateNow = datetime.now ()
+            #request = json.loads(request)
             stat= request.get (utilClass.readProperty('STATUS'))
             if stat== utilClass.readProperty ('OK'):
                 api_status=utilClass.readProperty ('SUCCESS')
-            else:
+            elif stat == utilClass.readProperty ('NOT_OK'):
                 api_status = utilClass.readProperty ('FAILURE')
+            else:
+                api_status = utilClass.readProperty ('SUCCESS')
             logging = ApiHomeDict.get(apiName)[0].logging
             if (logging == utilClass.readProperty ("YES") and utilClass.readProperty ('INVESTAK_API_AUDIT_ENABLE') == utilClass.readProperty ("YES")):
                 obj, created = Audit.objects.update_or_create (
@@ -93,21 +97,36 @@ class AuditTrial():
             else:
                 print 'no list it is dict123'
             print "utilClass.readProperty('STATUS')===",utilClass.readProperty('STATUS')
+            print "utilClass.readProperty('STATUS')===@",utilClass.readProperty('STATUS')
+            print "TSO response audit"
+           # request = json.loads(request)
+            print "mmmmmmmmmmmmmmm.readProperty('STATUS')@@===@",utilClass.readProperty('STATUS')
+            #print "Stat===",request['stat']
             stat = request.get(utilClass.readProperty('STATUS'))
-            print "stat===",stat
+            print "stat===@",stat
             if stat == utilClass.readProperty ('OK'):
                 tso_status = utilClass.readProperty('SUCCESS')
                 dictionary=SuccessDict
-            else:
+            elif stat == utilClass.readProperty ('NOT_OK'):
                 tso_status = utilClass.readProperty('FAILURE')
                 dictionary=FailureDict
+            else:
+                tso_status=stat
+                dictionary=SuccessDict
+            print "After if else"
+            logger.debug(apiName)
             logging = ApiHomeDict.get(apiName)[0].logging
+            logger.debug(logging)
+            logger.debug(utilClass.readProperty ("YES"))
+            logger.debug(utilClass.readProperty ('API_TSO_AUDIT_ENABLE'))
             if (logging == utilClass.readProperty ("YES") and utilClass.readProperty ('API_TSO_AUDIT_ENABLE') == utilClass.readProperty ("YES")):
                 obj, created = Audit.objects.update_or_create (
                     request_id=requestId,
                     defaults={utilClass.readProperty('TSO_RESPONSE'): request,utilClass.readProperty('TSO_RESPONSE_TIME_STAMP'):dateNow,utilClass.readProperty('TSO_STATUS'):tso_status},
                 )
         except Exception as e:
-            raise Exception(e)
+            print "HELLO"
+            #pass
+            #raise Exception(e)
         #logger.info(utilClass.readProperty("EXITING_METHOD"))
         return dictionary
