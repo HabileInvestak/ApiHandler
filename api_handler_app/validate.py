@@ -85,10 +85,22 @@ class Validate():
     def is_list(self,Paramvalue,param, dataType,validValues,error_message_template):
         errorMsg=''
         utilClass=UtilClass()
+        e = ReturnAllDict()
+        AllList = e.returnDict()
+        ApiHomeDict = AllList[0]
+        InputDict = AllList[1]
+        SuccessDict = AllList[2]
+        FailureDict = AllList[3]
+        JsonDict = AllList[4]
+        ListDict = AllList[5]
+        listArray=JsonDict.get(validValues)
         if Paramvalue:
-            if type(Paramvalue) is list:
-                pass
+            logger.debug("listArray")
+            logger.debug(listArray)
+            if Paramvalue in listArray:
+                logger.debug("if")
             else:
+                logger.debug("else")#pass
                 arrayValue = [param, dataType,validValues]
                 errorMsg = Validate().create_error_message (utilClass.readProperty (error_message_template), arrayValue)
         return errorMsg
@@ -124,13 +136,23 @@ class Validate():
     def is_json(self,Paramvalue,param, dataType,JsonDict,validValues):
         errorMsg=''
         utilClass=UtilClass()
+        #logger.info(utilClass.readProperty("ENTERING_METHOD"))
+        e = ReturnAllDict()
+        AllList = e.returnDict()
+        ApiHomeDict = AllList[0]
+        InputDict = AllList[1]
+        SuccessDict = AllList[2]
+        FailureDict = AllList[3]
+        JsonDict = AllList[4]
+        ListDict = AllList[5]
+        utilClass=UtilClass()
         if Paramvalue:
             logger.debug("###############JSON1")
             logger.debug("ValidValues")
             logger.debug(validValues)
             logger.debug("Paramvalue")
             logger.debug(Paramvalue)
-            logger.debug(JsonDict.get(validValues))
+            #logger.debug(JsonDict.get(validValues))
             for paramValueTemp in Paramvalue:
                 errorMsgTemp=''
                 logger.debug(paramValueTemp)
@@ -522,6 +544,9 @@ class Validate():
             elif (dataType == utilClass.readProperty('DECIMAL')):
                 errorMsg=Validate().is_decimal(Paramvalue,param,dataType,validValues,"INVALID_DATATYPE")
             elif (dataType == utilClass.readProperty('LIST')):
+                logger.debug(validValues)
+                logger.debug("JsonDict.get(validValues)")
+                
                 errorMsg=Validate().is_list(Paramvalue,param,dataType,validValues,"INVALID_DATATYPE")
             elif (dataType == utilClass.readProperty('DATE_TIME')):
                 errorMsg=Validate().is_date_time(Paramvalue,param,dataType,validValues,"INVALID_DATATYPE")
@@ -745,26 +770,29 @@ class Validate():
         errorMsg=''
         try:
             #logger.debug("valid_values_validation="+validValues+"="+paramValue+"="+param+"="+dataType)
+            logger.debug(dataType)
             if not (dataType == utilClass.readProperty('JSON')):
-                if utilClass.isBlank(validValues):
-                    pass
-                else:
-                    check=1
-                    words = validValues.split (',')
-                    for word in words:
-                        if (paramValue == word):
-                            check = 0
-                    if utilClass.isNotBlank(paramValue) and check==0:
-                        pass
+                    if not (dataType == utilClass.readProperty('LIST')):
+                        logger.debug("==Inside valid values")
+                        if utilClass.isBlank(validValues):
+                            pass
+                        else:
+                            check=1
+                            words = validValues.split (',')
+                            for word in words:
+                                if (paramValue == word):
+                                    check = 0
+                            if utilClass.isNotBlank(paramValue) and check==0:
+                                pass
+                            else:
+                                arrayValue=[param,validValues,paramValue]
+                                logger.debug(arrayValue)
+                                errorMsg=Validate().create_error_message(utilClass.readProperty("INVALID_VALUE"),arrayValue)
+                                logger.debug("After error message"+errorMsg)
+                    if errorMsg:
+                        errorList.append (errorMsg)
                     else:
-                        arrayValue=[param,validValues,paramValue]
-                        logger.debug(arrayValue)
-                        errorMsg=Validate().create_error_message(utilClass.readProperty("INVALID_VALUE"),arrayValue)
-                        logger.debug("After error message"+errorMsg)
-            if errorMsg:
-                errorList.append (errorMsg)
-            else:
-                logger.debug("No error message")
+                        logger.debug("No error message")
         except Exception as e:
             raise e
         #logger.info(utilClass.readProperty("EXITING_METHOD"))    
@@ -830,10 +858,13 @@ class Validate():
                     logger.debug("After validation_all")
                     result = Validate().validation_all (jsonObject, apiName, dict)
                 if not result:
-                    logger.debug("After manipulation_transformation")
+                    logger.debug("After manipulation_transformation=================")
+                    logger.debug(jsonObject)
+                    logger.debug(apiName)
+                    logger.debug(dict)
                     jsonObject = Validate().manipulation_transformation(jsonObject, apiName, dict)
                     result=jsonObject
-                    logger.debug("result="+str(result))
+                    #logger.debug("result="+str(result))
             elif(dict==SuccessDict):
                 logger.debug("INSIDE SUCCESS")
                 result = Validate().validation_parameter (jsonObject, apiName, dict)
@@ -873,8 +904,11 @@ class Validate():
             if jsonObject and  not dict==FailureDict and not dict==JsonDict:
                 for param, value in jsonObject.items():
                     dataType=dict.get(apiName).get(param)[0].dataType
+                    logger.debug(param)
+                    logger.debug(dataType)
                     if not dataType=='JSON':
                         transformation= dict.get(apiName).get(param)[0].transformation
+                        logger.debug(transformation)
                         value = Validate().transformation_validation (transformation, value)
                         jsonObject[param] = value
         except Exception as e:
@@ -925,6 +959,7 @@ class Validate():
                 pass
             else:
                 if utilClass.isNotBlank(Paramvalue):
+                    logger.debug(transformation)
                     transformation=ListDict.get(transformation).get(Paramvalue)[0].targetValue
                     Paramvalue=transformation
         except Exception as e:
