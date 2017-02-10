@@ -118,7 +118,7 @@ def get_initial_token(request):
                 output = {utilClass.readProperty ('STATUS'): stat,utilClass.readProperty ('ERROR'): emsg}
             print "#####################" 
             print output
-           # output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
+            output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call api_response_audit
             print "output",output
             print "##"
             auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
@@ -174,8 +174,9 @@ def get_login_mode(request):
             jData=""
             output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
             print "output final",output
-            #dictionary =auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
-            #auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
+            output = json.loads(output)
+            dictionary =auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
+            auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
             #logger.info(utilClass.readProperty("EXITING_METHOD"))
             return Response(output)            
     except Exception as e:
@@ -588,65 +589,6 @@ def get_valid_ans(request):
         return Response(output)
 
 
-'''Provides you with account details'''
-@api_view(["POST"])
-def get_account_info(request):
-    utilClass=UtilClass()
-    #logger.info(utilClass.readProperty("ENTERING_METHOD"))
-    auditTrial=AuditTrial()
-    validate=Validate()
-    requestObj=RequestClass()
-    output=''
-    requestId=''
-    apiName=''
-    try:
-        if request.method == utilClass.readProperty('METHOD_TYPE'):
-            url = ApiHomeDict.get(utilClass.readProperty("ACCOUNT_INFO"))[0].url
-            apiName = utilClass.readProperty ("ACCOUNT_INFO")
-            authorization = request.META.get(utilClass.readProperty('AUTHORIZATION'))
-            authorization=authorization.split("-")
-            public_key4_pem = requestObj.b64_decode(authorization[1].replace("\n",""))
-            tomcat_count= requestObj.b64_decode(authorization[2].replace("\n",""))
-            userId= requestObj.b64_decode(authorization[3].replace("\n",""))
-            jKey = requestObj.get_jkey(public_key4_pem)
-            requestJSON=bodyContent = request.body
-            requestId = auditTrial.investak_request_audit (userId, bodyContent, apiName,ApiHomeDict)
-            result = validate.chk_input_availability_and_format (bodyContent, apiName, ApiHomeDict)
-            if utilClass.readProperty("STATUS") in result and result[utilClass.readProperty("STATUS")]==utilClass.readProperty("NOT_OK"):
-                auditTrial.api_response_audit (requestId, result, apiName,ApiHomeDict)
-                #logger.info(utilClass.readProperty("EXITING_METHOD"))
-                return Response (result)
-            jsonObject = json.loads (bodyContent)
-            result = validate.validation_and_manipulation (jsonObject, apiName, InputDict)
-            if utilClass.readProperty("STATUS") in result and result[utilClass.readProperty("STATUS")]==utilClass.readProperty("NOT_OK"):
-                auditTrial.api_response_audit (requestId, result,apiName,ApiHomeDict)
-                #logger.info(utilClass.readProperty("EXITING_METHOD"))
-                return Response (result)
-    
-            requestId =auditTrial.api_request_audit (requestId, result, apiName,userId,ApiHomeDict)
-            json_data = json.dumps(result)
-            public_key4=requestObj.import_key(public_key4_pem)
-            if(utilClass.readProperty('ALGORITHM_TYPE')=='RSA'):
-                jData = encrypt(json_data,public_key4, 2048)
-            else:
-                raise Exception(utilClass.readProperty("ALGORITHM"))
-            tomcat_count=get_tomcat_count(tomcat_count)
-            user_id=userId
-            output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
-            output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
-            auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
-            #logger.info(utilClass.readProperty("EXITING_METHOD"))
-            return Response(output)
-        
-    except Exception as e:
-        logger.exception(e)
-        err=str(e)
-        output=createErrorResponse(err)
-        auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
-        return Response(output)
-
-
 @api_view(["POST"])
 def get_login_by_pass(request):
     #logger.info(utilClass.readProperty("ENTERING_METHOD"))
@@ -698,8 +640,11 @@ def get_load_retention_type(request):
             tomcat_count=requestObj.get_tomcat_count(tomcat_count)
             user_id=userId
             output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
+            print "output",output
             dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
-            #output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
+            print "dictionary",dictionary
+            output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
+            print "output",output
             auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
             #logger.info(utilClass.readProperty("EXITING_METHOD"))
             return Response(output)
@@ -758,7 +703,7 @@ def get_check_crkt_price_range(request):
             user_id = userId
             output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
-            #output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
+            output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
             auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
             #logger.info(utilClass.readProperty("EXITING_METHOD"))
             return Response(output)
@@ -819,7 +764,7 @@ def get_validate_GTD(request):
             output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
             print "After send request",output
             dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
-            #output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
+            output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
             auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
             #logger.info(utilClass.readProperty("EXITING_METHOD"))
             return Response(output)
@@ -938,7 +883,7 @@ def get_place_order(request):
             user_id = userId
             output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
-            #output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
+            output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
             auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
             #logger.info(utilClass.readProperty("EXITING_METHOD"))
             return Response(output)
@@ -1230,9 +1175,9 @@ def get_trade_book(request):
             tomcat_count = requestObj.get_tomcat_count(tomcat_count)
             user_id = userId
             output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
-            #dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
-            #output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
-            #auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
+            dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
+            output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
+            auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
             #logger.info(utilClass.readProperty("EXITING_METHOD"))
             return Response(output)
     
@@ -1282,13 +1227,13 @@ def get_holding(request):
             json_data = json.dumps(result)
             public_key4 = requestObj.import_key(public_key4_pem)
             if(utilClass.readProperty('ALGORITHM_TYPE')=='RSA'):
-                jData = encrypt(json_data, public_key4, 2048)
+                jData = requestObj.encrypt(json_data, public_key4, 2048)
             else:
                 raise Exception(utilClass.readProperty("ALGORITHM"))
-            tomcat_count = get_tomcat_count(tomcat_count)
+            tomcat_count = requestObj.get_tomcat_count(tomcat_count)
             user_id = userId
             output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
-            dictionary = tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
+            dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
             output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
             auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
             #logger.info(utilClass.readProperty("EXITING_METHOD"))
@@ -1297,8 +1242,8 @@ def get_holding(request):
     except Exception as e:
         logger.exception(e)
         err=str(e)
-        output=createErrorResponse(err)
-        auditTrial.api_response_audit (requestId, output,apiName)
+        output=validate.createErrorResponse(err)
+        auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
         return Response(output)
 
 
@@ -1348,9 +1293,70 @@ def get_limits(request):
             user_id = userId
             output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
             print "output=",output
-            #dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
-            #output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
-            #auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
+            dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
+            output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
+            auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
+            #logger.info(utilClass.readProperty("EXITING_METHOD"))
+            return Response(output)
+    
+    except Exception as e:
+        logger.exception(e)
+        err=str(e)
+        output=createErrorResponse(err)
+        auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
+        return Response(output)
+
+
+'''Allows you to view segment w ise RMS limits'''
+@api_view(["POST"])
+def get_check_transaction_password(request):
+    utilClass=UtilClass()
+    #logger.info(utilClass.readProperty("ENTERING_METHOD"))
+    auditTrial=AuditTrial()
+    validate=Validate()
+    requestObj=RequestClass()
+    output=''
+    requestId=''
+    apiName=''
+    try:
+        if request.method == utilClass.readProperty ('METHOD_TYPE'):
+            url = ApiHomeDict.get(utilClass.readProperty("CHECK_TRANSACTION_PASSWORD"))[0].url
+            logger.debug("url",url)
+            apiName = utilClass.readProperty ("CHECK_TRANSACTION_PASSWORD")
+            authorization = request.META.get(utilClass.readProperty('AUTHORIZATION'))
+            authorization = authorization.split("-")
+            public_key4_pem = requestObj.b64_decode(authorization[1].replace("\n", ""))
+            tomcat_count = requestObj.b64_decode(authorization[2].replace("\n", ""))
+            userId= requestObj.b64_decode(authorization[3].replace("\n",""))
+            jKey = requestObj.get_jkey(public_key4_pem)
+            requestJSON = bodyContent = request.body
+            requestId = auditTrial.investak_request_audit (userId, bodyContent, apiName,ApiHomeDict)
+            result = validate.chk_input_availability_and_format (bodyContent, apiName, ApiHomeDict)
+            if utilClass.readProperty("STATUS") in result and result[utilClass.readProperty("STATUS")]==utilClass.readProperty("NOT_OK"):
+                auditTrial.api_response_audit (requestId, result, apiName,ApiHomeDict)
+                #logger.info(utilClass.readProperty("EXITING_METHOD"))
+                return Response (result)
+            jsonObject = json.loads (bodyContent)
+            result = validate.validation_and_manipulation (jsonObject, apiName, InputDict)
+            if utilClass.readProperty("STATUS") in result and result[utilClass.readProperty("STATUS")]==utilClass.readProperty("NOT_OK"):
+                auditTrial.api_response_audit (requestId, result,apiName,ApiHomeDict)
+                #logger.info(utilClass.readProperty("EXITING_METHOD"))
+                return Response (result)
+    
+            requestId =auditTrial.api_request_audit (requestId, result, apiName,userId,ApiHomeDict)
+            json_data = json.dumps(result)
+            public_key4 = requestObj.import_key(public_key4_pem)
+            if(utilClass.readProperty('ALGORITHM_TYPE')=='RSA'):
+                jData = requestObj.encrypt(json_data, public_key4, 2048)
+            else:
+                raise Exception(utilClass.readProperty("ALGORITHM"))
+            tomcat_count = requestObj.get_tomcat_count(tomcat_count)
+            user_id = userId
+            output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
+            print "output=",output
+            dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
+            output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
+            auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
             #logger.info(utilClass.readProperty("EXITING_METHOD"))
             return Response(output)
     
@@ -1410,7 +1416,7 @@ def get_user_profile(request):
             user_id = userId
             output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
-            #output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
+            output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
             auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
             #logger.info(utilClass.readProperty("EXITING_METHOD"))
             return Response(output)
@@ -1469,7 +1475,7 @@ def get_account_info(request):
             user_id = userId
             output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
             dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
-            #output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
+            output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
             auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
             #logger.info(utilClass.readProperty("EXITING_METHOD"))
             return Response(output)
@@ -1526,9 +1532,9 @@ def get_open_orders(request):
             tomcat_count = requestObj.get_tomcat_count(tomcat_count)
             user_id = userId
             output = requestObj.send_request(bodyContent, url, authorization, user_id, tomcat_count, jKey, jData)
-           # dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
-           # output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
-           # auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
+            dictionary = auditTrial.tso_response_audit (requestId, output,apiName,ApiHomeDict,SuccessDict,FailureDict)
+            output = validate.validation_and_manipulation (output, apiName,dictionary)  # manipulation logic and call auditTrial.api_response_audit
+            auditTrial.api_response_audit (requestId, output,apiName,ApiHomeDict)
             #logger.info(utilClass.readProperty("EXITING_METHOD"))
             return Response(output)
         
